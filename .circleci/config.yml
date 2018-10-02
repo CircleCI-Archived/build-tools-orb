@@ -1,0 +1,105 @@
+version: 2.1
+orbs:
+  build-tools:
+    description: >
+      An orb with general-purpose tools that can come in handy in debugging
+      or analyzing your builds.
+
+    executors:
+      default:
+        parameters:
+          tag:
+            type: string
+            default: stretch-scm
+        docker:
+          - image: circleci/buildpack-deps:<< parameters.tag >>
+      python:
+        docker:
+          - image: circleci/python:3.6.6
+
+    commands:
+      diagnostic:
+        description: Output basic info about the build environment to help in a diagnostic.
+        steps:
+          - run:
+              name: "Show system information"
+              command: |
+                echo "uname -a:" $(uname -a)
+                echo "arch: " $(arch)
+          - run:
+              name: "Show build info from CircleCI env vars"
+              command: |
+                echo "TRIGGERER: ${CIRCLE_USERNAME}"
+                echo "BUILD_NUMBER: ${CIRCLE_BUILD_NUM}"
+                echo "BUILD_URL: ${CIRCLE_BUILD_URL}"
+                echo "BRANCH: ${CIRCLE_BRANCH}"
+                echo "RUNNING JOB: ${CIRCLE_JOB}"
+                echo "JOB PARALLELISM: ${CIRCLE_NODE_TOTAL}"
+                echo "CIRCLE_REPOSITORY_URL: ${CIRCLE_REPOSITORY_URL}"
+      script-run:
+        description: >
+          Given a string (can be multi-line), write that string to a file,
+          make it executable, and run it.
+        parameters:
+          script:
+            type: string
+            description: >
+              A string containing your entire script.
+              If you want to make this inline we recommend using the `|` operator
+              in YAML to create a multi-line string.
+          file-directory:
+            type: string
+            default: "~/.circleci/orbs/script-run/"
+          file-name:
+            type: string
+            default: script-run-persisted
+          label:
+            type: string
+            default: Write the file and run the created script
+          output-file:
+            type: string
+            default: ""
+            description: When present, save the output to a file at the path given. otherwise, output directly.
+        steps:
+          - run:
+              name: << parameters.label >>
+              command: |
+                mkdir -p << parameters.file-directory >>
+                tmpfile=$(mktemp << parameters.file-directory >>script-run-persisted.XXXXXX)
+                touch $tmpfile
+                sudo chmod +x $tmpfile
+                cat \<< ENDOFSCRIPTINTHISORB > $tmpfile
+                << parameters.script >>
+                ENDOFSCRIPTINTHISORB
+                << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file   >> >> << parameters.output-file >><</ parameters.output-file >>
+    jobs:
+      diagnostic:
+        executor: default
+        steps:
+          - diagnostic
+jobs:
+  test-script-run:
+    docker:
+      - image: circleci/ruby:2.4.1
+    working_directory: ~/.circleci/temp/
+    steps:
+      - script-run:
+        output-file:"./myfile.txt"
+        script: |
+          #!/usr/local/bin/ruby
+          puts "Orb OK"
+      - run:
+          name; Check to be sure the script did what was expected
+          command: |
+            if [$(cat ./myfile.txt) -eq "Orb OK"] ; then
+              echo 'Script worked as expected. OK.'
+              exit 0
+            fi
+            echo 'Script did not work as expected.'
+            exit 1
+workflows:
+  btd:
+    jobs:
+      - builds-tools/diagnostic:
+          name: diagnostic
+      - test-script-run
