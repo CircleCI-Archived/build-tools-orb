@@ -83,7 +83,7 @@ jobs:
       - image: circleci/ruby:2.4.1
     working_directory: ~/.circleci/temp/
     steps:
-      - script-run:
+      - build-tools/script-run:
           output-file: "./myfile.txt"
           script: |
             #!/usr/local/bin/ruby
