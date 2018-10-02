@@ -93,7 +93,7 @@ jobs:
           command: |
             value=$( cat ./myfile.txt )
             echo $value
-            if [ $(echo $value) -eq "Orb OK" ] ; then
+            if [ "$value" -eq "Orb OK" ] ; then
               echo 'Script worked as expected. OK.'
               exit 0
             fi
