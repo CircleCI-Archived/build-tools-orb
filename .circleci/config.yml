@@ -84,10 +84,10 @@ jobs:
     working_directory: ~/.circleci/temp/
     steps:
       - script-run:
-        output-file:"./myfile.txt"
-        script: |
-          #!/usr/local/bin/ruby
-          puts "Orb OK"
+          output-file:"./myfile.txt"
+          script: |
+            #!/usr/local/bin/ruby
+            puts "Orb OK"
       - run:
           name; Check to be sure the script did what was expected
           command: |
