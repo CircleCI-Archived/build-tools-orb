@@ -84,12 +84,12 @@ jobs:
     working_directory: ~/.circleci/temp/
     steps:
       - script-run:
-          output-file:"./myfile.txt"
+          output-file: "./myfile.txt"
           script: |
             #!/usr/local/bin/ruby
             puts "Orb OK"
       - run:
-          name; Check to be sure the script did what was expected
+          name: Check to be sure the script did what was expected
           command: |
             if [$(cat ./myfile.txt) -eq "Orb OK"] ; then
               echo 'Script worked as expected. OK.'
