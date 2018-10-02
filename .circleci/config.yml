@@ -91,7 +91,9 @@ jobs:
       - run:
           name: Check to be sure the script did what was expected
           command: |
-            if [$(cat ./myfile.txt) -eq "Orb OK"] ; then
+            value=$( cat ./myfile.txt )
+            echo $value
+            if [$value -eq "Orb OK"] ; then
               echo 'Script worked as expected. OK.'
               exit 0
             fi
