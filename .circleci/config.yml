@@ -65,7 +65,7 @@ orbs:
               name: << parameters.label >>
               command: |
                 mkdir -p << parameters.file-directory >>
-                tmpfile=$(mktemp << parameters.file-directory >><< parameters.file-name >>)
+                tmpfile="<< parameters.file-directory >><< parameters.file-name >>"
                 touch $tmpfile
                 sudo chmod +x $tmpfile
                 cat \<< ENDOFSCRIPTINTHISORB > $tmpfile
