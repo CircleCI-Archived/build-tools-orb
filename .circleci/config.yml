@@ -1,10 +1,12 @@
 version: 2.1
 orbs:
+  orb-tools: circleci/orb-tools@dev:master
   build-tools:
     description: >
       An orb with general-purpose tools that can come in handy in debugging
       or analyzing your builds.
-
+    orbs:
+      cli: circleci/circleci-cli@volatile
     executors:
       default:
         parameters:
@@ -14,8 +16,26 @@ orbs:
         docker:
           - image: circleci/buildpack-deps:<< parameters.tag >>
       python:
+        parameters:
+          tag:
+            type: string
+            default: "3.6.6"
         docker:
-          - image: circleci/python:3.6.6
+          - image: circleci/python:<< parameters.tag >>
+      ruby:
+        parameters:
+          tag:
+            type: string
+            default: "2.4.1"
+        docker:
+          - image: circleci/ruby:<< parameters.tag >>
+      bash:
+        parameters:
+          tag:
+            type: string
+            default: latest
+        docker:
+          - image: bash:<< parameters.tag >>
 
     commands:
       diagnostic:
@@ -74,9 +94,145 @@ orbs:
                 << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file   >> >> << parameters.output-file >><</ parameters.output-file >>
     jobs:
       diagnostic:
+        description: A job that runs a basic diagnostic of your build and outputs some handy information.
         executor: default
         steps:
           - diagnostic
+      introspect-orbs:
+        description: A job that outputs information about all the orbs used in the build in which the job is invoked.
+        docker:
+          - image: circleci/ruby:2.4.1
+        parameters:
+          checkout:
+            type: boolean
+            default: true
+            description: >
+              Boolean for whether to run a `checkout` first
+               - default is false for the command, assuming you
+               may have already done checkout in your job.
+          config-path:
+            type: string
+            default: ".circleci/config.yml"
+          working-file:
+            type: string
+            default: '~/.circleci/orb-introspection.yml'
+        steps:
+          - when:
+              condition: << parameters.checkout >>
+              steps:
+                - checkout
+          - cli/install
+          - run:
+              name: Install dependencies
+              command: |
+                gem install markdown-tables
+                gem install indentation
+                gem install colorize
+          - script-run:
+              # TODO -- this is a bit heavy-handed and could probably be made much more elegant
+              label: "Get the orb source for all the orbs used in << parameters.config-path >>"
+              file-name: orb-instrospect.rb
+              script: |
+                #!/usr/local/bin/ruby
+                require 'yaml'
+                require 'open3'
+                require 'fileutils'
+                orbs = YAML.load_file('<< parameters.config-path >>')["orbs"]
+                if orbs.nil?
+                  puts "No orbs were found in << parameters.config-path >>."
+                  exit true
+                end
+                metadata = {}
+                orbs.each do |key, content|
+                  metadata[key] = {}
+                  if content.is_a?(String)
+                    puts 'found orb ref ' + content + ' - attempting to pull source'
+                    stdout_str, error_str, status = Open3.capture3('/usr/local/bin/circleci', 'orb', 'source', content)
+                    puts error_str unless error_str.nil?
+                    orbs[key] = YAML.load(stdout_str)
+                    metadata[key]['ref'] = content
+                  else
+                    puts 'local orb ' + key + ' is inline.'
+                    metadata[key]['ref'] = "inline"
+                  end
+                  content = orbs[key]
+                  metadata[key]['description'] = content['description']
+                  ['executors','commands','jobs'].each do |elem|
+                    unless content[elem].nil?
+                      metadata[key][elem] = {}
+                      content[elem].each do |name, value|
+                        metadata[key][elem][name] = {}
+                        metadata[key][elem][name]['parameters'] = content[elem][name]['parameters']
+                        metadata[key][elem][name]['description'] = content[elem][name]['description']
+                      end
+                    end
+                  end
+                end
+                puts metadata.to_yaml
+                FileUtils.mkdir_p(File.dirname('<< parameters.working-file >>'))
+                open('<< parameters.working-file >>', 'w') do |f|
+                  f.puts metadata.to_yaml
+                end
+          - script-run:
+              label: "Display orb info for << parameters.config-path >>"
+              file-name: orb-instrospect.rb
+              script: |
+                #!/usr/local/bin/ruby
+                require 'yaml'
+                require 'indentation'
+                require 'markdown-tables'
+                require 'colorize'
+                orbs = YAML.load_file('<< parameters.working-file >>')
+                def disp(str)
+                  return if str.nil?
+                  puts str.indent(@indent)
+                end
+                def description_process(s, width=40)
+                  return if s.nil?
+                  maxlen = 50
+                  truncate_string = "..."
+                  l = maxlen - s.chars.length
+                  (s.length > maxlen ? s[0...l] + truncate_string : s).to_s.tr("\n"," ")
+                end
+                def parameter_table(params)
+                  return if params.nil?
+                  labels = ['name', 'type', 'default', 'description']
+                  data = []
+                  params.each do |param, paramcontent|
+                    data.push([param, paramcontent['type'], paramcontent['default'], description_process(paramcontent['description'])])
+                  end
+                  md_table = MarkdownTables.make_table(labels, data, is_rows: true, align: ['l', 'l', 'l', 'l'])
+                  MarkdownTables.plain_text(md_table)
+                end
+
+                puts '# ORBS'
+                puts '---------------------------------'
+                orbs.each do |orb_alias, details|
+                  @indent = 0
+                  disp '## ' + orb_alias.colorize(:blue).colorize(:bold) + ' (' + details['ref'] + ')'
+                  unless details['description'].nil?
+                    disp details['description']
+                  end
+                  @indent = @indent + 2
+                  ['jobs', 'executors', 'commands'].each do |element|
+                    disp '### ' + element.capitalize
+                    @indent = @indent + 2
+                    if details[element].nil?
+                      disp "NONE"
+                      @indent = @indent - 2
+                      next
+                    end
+                    details[element].each do |item, content|
+                      disp (orb_alias + '/' + item).colorize(:blue)
+                      @indent = @indent + 2
+                      disp content['description']
+                      disp parameter_table(content['parameters'])
+                      puts ""
+                      @indent = @indent - 2
+                    end
+                    @indent = @indent - 2
+                  end
+                end
 jobs:
   test-script-run:
     docker:
@@ -92,16 +248,18 @@ jobs:
           name: Check to be sure the script did what was expected
           command: |
             value=$( cat ./myfile.txt )
-            echo $value
             if [ "$value" == "Orb OK" ] ; then
               echo 'Script worked as expected. OK.'
               exit 0
             fi
             echo 'Script did not work as expected.'
             exit 1
+
 workflows:
   btd:
     jobs:
       - build-tools/diagnostic:
           name: diagnostic
       - test-script-run
+      - build-tools/introspect-orbs
+
