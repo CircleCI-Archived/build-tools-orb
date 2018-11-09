@@ -233,6 +233,23 @@ orbs:
                     @indent = @indent - 2
                   end
                 end
+commands:
+  extract-inline-orb:
+    parameters:
+      file:
+        type: string
+        description: A path to the valid CircleCI config from which you want to extract the inline orb.
+    steps:
+      # TODO: should validate we're getting good config yaml as an input
+      - run: gem install unindent
+      - build-tools/script-run:
+          script: |
+            #!/usr/local/bin/ruby
+            file='<< parameters.file >>'
+            File.readlines(file).each do |line|
+              puts line
+              puts line.slice(0, 4)
+            end
 jobs:
   test-script-run:
     docker:
@@ -254,7 +271,14 @@ jobs:
             fi
             echo 'Script did not work as expected.'
             exit 1
-
+  extract-and-publish-build-tools:
+    docker:
+      - image: circleci/ruby:2.4.1
+    working_directory: ~/.circleci/temp/
+    steps:
+      - checkout
+      - extract-inline-orb:
+          file: ./.circleci/config.yml
 workflows:
   btd:
     jobs:
