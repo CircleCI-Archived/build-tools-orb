@@ -258,11 +258,11 @@ commands:
             File.readlines(file).each do |line|
               indent = line[/\A */].size
 
-              puts 'line: ' + line
-              puts 'indent: ' + indent
-              puts 'initial_indent: ' + initial_indent
-              puts 'inside_orbs_stanza: ' + inside_orbs_stanza
-              puts 'write_lines: ' + write_lines
+              puts 'line: ' + line.to_s
+              puts 'indent: ' + indent.to_s
+              puts 'initial_indent: ' + initial_indent.to_s
+              puts 'inside_orbs_stanza: ' + inside_orbs_stanza.to_s
+              puts 'write_lines: ' + write_lines.to_s
 
               # if we are writing lines we are looking for the end
               # and we are capturing even empty lines
