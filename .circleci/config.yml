@@ -261,6 +261,7 @@ commands:
             write_lines = false
             inside_orbs_stanza = false
             initial_indent = 0
+            debug = false
 
             File.readlines(file).each do |line|
               indent = line[/\A */].size
@@ -268,13 +269,13 @@ commands:
                 inside_orbs_stanza = true
                 next
               end
-
-              puts 'line: ' + line.to_s
-              puts 'indent: ' + indent.to_s
-              puts 'initial_indent: ' + initial_indent.to_s
-              puts 'inside_orbs_stanza: ' + inside_orbs_stanza.to_s
-              puts 'write_lines: ' + write_lines.to_s
-
+              if debug
+                puts 'line: ' + line.to_s
+                puts 'indent: ' + indent.to_s
+                puts 'initial_indent: ' + initial_indent.to_s
+                puts 'inside_orbs_stanza: ' + inside_orbs_stanza.to_s
+                puts 'write_lines: ' + write_lines.to_s
+              end
               # if we are writing lines we are looking for the end
               # and we are capturing even empty lines
               if write_lines
