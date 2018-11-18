@@ -303,7 +303,7 @@ commands:
             File.open("<< parameters.save-file >>", "w+") do |f|
               f.puts(lines)
             end
-            fh = open << parameters.save-file >>
+            fh = open "<< parameters.save-file >>"
             fh.each do |line|
                puts line
             end
