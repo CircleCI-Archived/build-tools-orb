@@ -339,7 +339,7 @@ jobs:
     steps:
       - checkout
       - extract-inline-orb:
-          file: ./.circleci/config.yml
+          source: ./.circleci/config.yml
           orb: "build-tools"
 
   # extract-and-publish-build-tools:
