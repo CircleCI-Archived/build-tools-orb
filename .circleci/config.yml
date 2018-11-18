@@ -310,10 +310,10 @@ commands:
                 write_lines = true if line.slice(indent, orb.size) == orb
               end
             end
-            File.open("<< parameters.save-file >>", "w+") do |f|
+            File.open(File.expand_path('<< parameters.save-file >>'), "w+") do |f|
               f.puts(lines)
             end
-            fh = open "<< parameters.save-file >>"
+            fh = open File.expand_path('<< parameters.save-file >>')
             fh.each do |line|
               puts line
             end
