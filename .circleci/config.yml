@@ -297,7 +297,7 @@ commands:
                 if initial_indent == 0
                   initial_indent = indent
                 end
-                puts line.slice(indent, orb.size)
+                puts line.slice(indent, orb.size) if debug
                 write_lines = true if line.slice(indent, orb.size) == orb
               end
             end
