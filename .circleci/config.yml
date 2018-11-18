@@ -91,15 +91,19 @@ orbs:
                 cat \<< ENDOFSCRIPTINTHISORB > $tmpfile
                 << parameters.script >>
                 ENDOFSCRIPTINTHISORB
-                << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file   >> >> << parameters.output-file >><</ parameters.output-file >>
+                << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file >> >> << parameters.output-file >><</ parameters.output-file >>
     jobs:
       diagnostic:
-        description: A job that runs a basic diagnostic of your build and outputs some handy information.
+        description: >
+          A job that runs a basic diagnostic of your build
+          and outputs some handy information.
         executor: default
         steps:
           - diagnostic
       introspect-orbs:
-        description: A job that outputs information about all the orbs used in the build in which the job is invoked.
+        description: >
+          A job that outputs information about all the
+          orbs used in the build in which the job is invoked.
         docker:
           - image: circleci/ruby:2.4.1
         parameters:
@@ -253,7 +257,11 @@ commands:
       - build-tools/script-run:
           script: |
             #!/usr/local/bin/ruby
-            # NOTE: this is a brute-force method to preserve all comments and formatting
+            # NOTE: this is a brute-force method that does straight string
+            # manipulation rather than parsing the YAML in order to preserve
+            # all comments and spacing exactly as the author write them (other
+            # than outdenting everything in the final string).
+            # TODO: This could probably be more elegant in various ways
             require 'json'
             require 'unindent'
             file='<< parameters.source >>'
@@ -307,10 +315,9 @@ commands:
             end
             fh = open "<< parameters.save-file >>"
             fh.each do |line|
-               puts line
+              puts line
             end
             fh.close
-
 executors:
   test:
     docker:
