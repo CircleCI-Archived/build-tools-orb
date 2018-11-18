@@ -260,6 +260,8 @@ commands:
 
               puts line
               puts indent
+              puts initial_indent
+              puts inside_orbs_stanza
 
               # if we are writing lines we are looking for the end
               # and we are capturing even empty lines
