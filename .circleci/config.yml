@@ -249,14 +249,20 @@ commands:
           script: |
             #!/usr/local/bin/ruby
             # NOTE: this is a brute-force method to preserve all comments and formatting
+            require 'json'
             file='<< parameters.file >>'
             orb='<< parameters.orb >>'
             lines = []
             write_lines = false
             inside_orbs_stanza = false
             initial_indent = 0
+
             File.readlines(file).each do |line|
               indent = line[/\A */].size
+              if indent == 0 && line.slice(0, 5).downcase == "orbs:"
+                inside_orbs_stanza = true
+                next
+              end
 
               puts 'line: ' + line.to_s
               puts 'indent: ' + indent.to_s
@@ -287,10 +293,6 @@ commands:
                 end
                 puts line.slice(indent, orb.size)
                 write_lines = true if line.slice(indent, orb.size) == orb
-              else
-                if line.slice(0, 4).downcase == "orbs"
-                  inside_orbs_stanza = true
-                end
               end
               puts lines.join('\n')
             end
