@@ -289,7 +289,7 @@ commands:
                   inside_orbs_stanza = true
                 end
               end
-              puts lines.split('\n')
+              puts lines.join('\n')
             end
 
 executors:
