@@ -250,11 +250,15 @@ commands:
               puts line
               puts line.slice(0, 4)
             end
-jobs:
-  test-script-run:
+
+executors:
+  test:
     docker:
       - image: circleci/ruby:2.4.1
     working_directory: ~/.circleci/temp/
+
+jobs:
+  test-script-run:
     steps:
       - build-tools/script-run:
           output-file: "./myfile.txt"
@@ -271,14 +275,18 @@ jobs:
             fi
             echo 'Script did not work as expected.'
             exit 1
-  extract-and-publish-build-tools:
-    docker:
-      - image: circleci/ruby:2.4.1
-    working_directory: ~/.circleci/temp/
+  test-extract-inline-orb:
+    executor: test
     steps:
-      - checkout
       - extract-inline-orb:
           file: ./.circleci/config.yml
+
+  # extract-and-publish-build-tools:
+  #   executor: test
+  #   steps:
+  #     - checkout
+  #     # - extract-inline-orb:
+  #     #     file: ./.circleci/config.yml
 workflows:
   btd:
     jobs:
