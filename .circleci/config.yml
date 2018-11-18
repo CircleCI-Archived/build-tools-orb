@@ -295,7 +295,7 @@ commands:
                 write_lines = true if line.slice(indent, orb.size) == orb
               end
             end
-            puts lines.join('\n')
+            puts lines.join("\n").unindent
 
 executors:
   test:
