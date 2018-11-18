@@ -256,7 +256,7 @@ commands:
             inside_orbs_stanza = false
             initial_indent = 0
             File.readlines(file).each do |line|
-              indent = s[/\A */].size
+              indent = line[/\A */].size
 
               puts line
               puts indent
