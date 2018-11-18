@@ -236,6 +236,9 @@ orbs:
 commands:
   extract-inline-orb:
     parameters:
+      orb:
+        type: string
+        description: name of the orb you want to extract
       file:
         type: string
         description: A path to the valid CircleCI config from which you want to extract the inline orb.
@@ -246,6 +249,7 @@ commands:
           script: |
             #!/usr/local/bin/ruby
             file='<< parameters.file >>'
+            orb='<< parameters.orb >>'
             File.readlines(file).each do |line|
               puts line
               puts line.slice(0, 4)
@@ -279,8 +283,10 @@ jobs:
   test-extract-inline-orb:
     executor: test
     steps:
+      - checkout
       - extract-inline-orb:
           file: ./.circleci/config.yml
+          orb: "build-tools"
 
   # extract-and-publish-build-tools:
   #   executor: test
