@@ -242,7 +242,7 @@ commands:
       source:
         type: string
         description: A path to the valid CircleCI config from which you want to extract the inline orb.
-      save-artifacts:
+      save-file:
         type: string
         description: Path to the file where the orb should be saved
         default: "~/.circleci/orb.yml"
