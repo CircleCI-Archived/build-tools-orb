@@ -239,9 +239,13 @@ commands:
       orb:
         type: string
         description: name of the orb you want to extract
-      file:
+      source:
         type: string
         description: A path to the valid CircleCI config from which you want to extract the inline orb.
+      save-artifacts:
+        type: string
+        description: Path to the file where the orb should be saved
+        default: "~/.circleci/orb.yml"
     steps:
       # TODO: should validate we're getting good config yaml as an input
       - run: gem install unindent
@@ -251,7 +255,7 @@ commands:
             # NOTE: this is a brute-force method to preserve all comments and formatting
             require 'json'
             require 'unindent'
-            file='<< parameters.file >>'
+            file='<< parameters.source >>'
             orb='<< parameters.orb >>'
             lines = []
             write_lines = false
@@ -296,7 +300,14 @@ commands:
                 write_lines = true if line.slice(indent, orb.size) == orb
               end
             end
-            puts lines.join("\n").unindent
+            File.open("<< parameters.save-file >>", "w+") do |f|
+              f.puts(lines)
+            end
+            fh = open << parameters.save-file >>
+            fh.each do |line|
+               puts line
+            end
+            fh.close
 
 executors:
   test:
