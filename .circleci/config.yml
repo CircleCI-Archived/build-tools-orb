@@ -294,5 +294,6 @@ workflows:
       - build-tools/diagnostic:
           name: diagnostic
       - test-script-run
+      - test-extract-inline-orb
       - build-tools/introspect-orbs
 
