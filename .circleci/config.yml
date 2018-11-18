@@ -267,7 +267,7 @@ commands:
                 # if this line has the same as the originating indent, we are done
                 break if indent == initial_indent
                 # write the line
-                lines.concat line
+                lines.push line
               else
                 # don't bother with empty lines
                 next if line.strip.empty?
