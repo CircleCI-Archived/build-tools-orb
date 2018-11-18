@@ -248,11 +248,48 @@ commands:
       - build-tools/script-run:
           script: |
             #!/usr/local/bin/ruby
+            # NOTE: this is a brute-force method to preserve all comments and formatting
             file='<< parameters.file >>'
             orb='<< parameters.orb >>'
+            lines = []
+            write_lines = false
+            inside_orbs_stanza = false
+            initial_indent = 0
             File.readlines(file).each do |line|
+              indent = s[/\A */].size
+
               puts line
-              puts line.slice(0, 4)
+              puts indent
+
+              # if we are writing lines we are looking for the end
+              # and we are capturing even empty lines
+              if write_lines
+                # if this line has the same as the originating indent, we are done
+                break if indent == initial_indent
+                # write the line
+                lines.concat line
+              else
+                # don't bother with empty lines
+                next if line.strip.empty?
+              end
+
+              if inside_orbs_stanza
+                # if this line has no indent it means we are no longer in the orbs stanza
+                break if indent == 0
+                ## if we are inside the orbs inside the orbs stanza
+                ## but have not yet set the indent, it should mean
+                ## the line we are on is the right initial indent
+                if initial_indent == 0
+                  initial_indent = indent
+                end
+                puts line.slice(indent, orb.size)
+                write_lines = true if line.slice(indent, orb.size) == orb
+              else
+                if line.slice(0, 4).downcase == "orbs"
+                  inside_orbs_stanza = true
+                end
+              end
+              puts lines.split(\n)
             end
 
 executors:
