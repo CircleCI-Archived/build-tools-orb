@@ -250,6 +250,7 @@ commands:
             #!/usr/local/bin/ruby
             # NOTE: this is a brute-force method to preserve all comments and formatting
             require 'json'
+            require 'unindent'
             file='<< parameters.file >>'
             orb='<< parameters.orb >>'
             lines = []
