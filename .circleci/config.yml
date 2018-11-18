@@ -294,8 +294,8 @@ commands:
                 puts line.slice(indent, orb.size)
                 write_lines = true if line.slice(indent, orb.size) == orb
               end
-              puts lines.join('\n')
             end
+            puts lines.join('\n')
 
 executors:
   test:
