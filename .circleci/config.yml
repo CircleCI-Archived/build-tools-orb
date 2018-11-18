@@ -259,6 +259,7 @@ executors:
 
 jobs:
   test-script-run:
+    executor: test
     steps:
       - build-tools/script-run:
           output-file: "./myfile.txt"
