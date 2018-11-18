@@ -249,6 +249,7 @@ commands:
     steps:
       # TODO: should validate we're getting good config yaml as an input
       - run: gem install unindent
+      - run: touch << parameters.save-file >>
       - build-tools/script-run:
           script: |
             #!/usr/local/bin/ruby
