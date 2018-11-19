@@ -410,7 +410,7 @@ workflows:
       - orb-tools/publish:
           checkout: false
           attach-workspace: true
-          orb-path: "extract-inline-orb/orb.yml"
+          orb-path: "extract-inline-orb/build-tools.yml"
           orb-ref: "sandbox/build-tools@dev:${CIRCLE_BRANCH}"
           publish-token-variable: "$ORB_DEV_PUBLISHING_TOKEN"
           requires:
