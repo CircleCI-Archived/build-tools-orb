@@ -237,7 +237,7 @@ orbs:
                     @indent = @indent - 2
                   end
                 end
-    orb-tools: circleci/orb-tools@dev:master
+  orb-tools: circleci/orb-tools@volatile
 commands:
   extract-inline-orb:
     parameters:
