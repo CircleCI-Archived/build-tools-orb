@@ -306,6 +306,9 @@ commands:
                 inside_orbs_stanza = true
                 next
               end
+              if indent == 0 && line.slice(0, 8).downcase == "version:"
+                lines.unshift line
+              end
               if debug
                 puts '------ LINE ---------'
                 puts 'line: ' + line.to_s
