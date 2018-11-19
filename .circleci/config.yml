@@ -270,7 +270,7 @@ commands:
     steps:
       # TODO: should validate we're getting good config yaml as an input
       - run: gem install unindent
-      - run: touch << parameters.file >>
+      - run: mkdir -p $( dirname "<< parameters.file >>") && touch "<< parameters.file >>"
       - build-tools/script-run:
           script: |
             #!/usr/local/bin/ruby
