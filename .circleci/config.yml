@@ -294,10 +294,10 @@ commands:
                 break if indent == initial_indent
                 # write the line
                 lines.push line
-              else
-                # don't bother with empty lines
-                next if line.strip.empty?
               end
+
+              # if this is an empty line, skip ahead
+              next if line.strip.empty?
 
               if inside_orbs_stanza
                 # if this line has no indent it means we are no longer in the orbs stanza
