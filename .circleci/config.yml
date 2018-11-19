@@ -6,7 +6,6 @@ orbs:
       or analyzing your builds.
     orbs:
       cli: circleci/circleci-cli@volatile
-
     executors:
       default:
         parameters:
@@ -36,7 +35,6 @@ orbs:
             default: latest
         docker:
           - image: bash:<< parameters.tag >>
-
     commands:
       diagnostic:
         description: Output basic info about the build environment to help in a diagnostic.
@@ -251,6 +249,10 @@ commands:
         type: string
         description: Path to the file where the orb should be saved
         default: "~/.circleci/orb.yml"
+      store-artifact:
+        type: boolean
+        default: true
+        description: When true (default), save an artifact at `save-file` path
     steps:
       # TODO: should validate we're getting good config yaml as an input
       - run: gem install unindent
@@ -313,15 +315,13 @@ commands:
               end
             end
             final = lines.join("").unindent
-            puts final
-            # File.open(File.expand_path('<< parameters.save-file >>'), "w+") do |f|
-            #   f.puts(lines)
-            # end
-            # fh = open File.expand_path('<< parameters.save-file >>')
-            # fh.each do |line|
-            #   puts line
-            # end
-            # fh.close
+            puts "WRITING FILE: << parameters.save-file >>"
+            File.open(File.expand_path('<< parameters.save-file >>'), "w") { |file| file.write(final) }
+      - when:
+          condition: << parameters.store-artifact >>
+          steps:
+            - store_artifacts:
+                path: << parameters.save-file >>
 executors:
   test:
     docker:
