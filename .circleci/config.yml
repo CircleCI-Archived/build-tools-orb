@@ -1,12 +1,12 @@
 version: 2.1
 orbs:
-  orb-tools: circleci/orb-tools@dev:master
   build-tools:
     description: >
       An orb with general-purpose tools that can come in handy in debugging
       or analyzing your builds.
     orbs:
       cli: circleci/circleci-cli@volatile
+
     executors:
       default:
         parameters:
@@ -237,6 +237,7 @@ orbs:
                     @indent = @indent - 2
                   end
                 end
+    orb-tools: circleci/orb-tools@dev:master
 commands:
   extract-inline-orb:
     parameters:
