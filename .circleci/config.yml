@@ -271,7 +271,7 @@ commands:
             write_lines = false
             inside_orbs_stanza = false
             initial_indent = 0
-            debug = false
+            debug = true
 
             File.readlines(file).each do |line|
               indent = line[/\A */].size
