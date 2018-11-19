@@ -280,6 +280,7 @@ commands:
                 next
               end
               if debug
+                puts '------ LINE ---------'
                 puts 'line: ' + line.to_s
                 puts 'indent: ' + indent.to_s
                 puts 'initial_indent: ' + initial_indent.to_s
