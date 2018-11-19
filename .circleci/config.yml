@@ -310,8 +310,7 @@ commands:
                 write_lines = true if line.slice(indent, orb.size) == orb
               end
             end
-            puts lines.inspect
-            final = lines.join("\n").unindent
+            final = lines.join("").unindent
             puts final
             # File.open(File.expand_path('<< parameters.save-file >>'), "w+") do |f|
             #   f.puts(lines)
