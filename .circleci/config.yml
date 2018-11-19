@@ -91,6 +91,7 @@ orbs:
                 ENDOFSCRIPTINTHISORB
                 << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file >> >> << parameters.output-file >><</ parameters.output-file >>
       init-file:
+        description: Given a file path, make sure the directories and the file exist
         parameters:
           file:
             type: string
@@ -279,7 +280,8 @@ commands:
     steps:
       # TODO: should validate we're getting good config yaml as an input
       - run: gem install unindent
-      - 
+      - build-tools/init-file:
+          file: << parameters.file >>
       - build-tools/script-run:
           script: |
             #!/usr/local/bin/ruby
