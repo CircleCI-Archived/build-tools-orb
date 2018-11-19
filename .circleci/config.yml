@@ -379,13 +379,18 @@ jobs:
             fi
             echo 'Script did not work as expected.'
             exit 1
-  test-extract-inline-orb:
+  extract-inline-orb:
+    parameters:
+      file:
+        type: string
+
     executor: test
     steps:
       - checkout
       - extract-inline-orb:
           source: ./.circleci/config.yml
           orb: "build-tools"
+          file: << parameters.file >>
 
   # extract-and-publish-build-tools:
   #   executor: test
@@ -399,6 +404,15 @@ workflows:
       - build-tools/diagnostic:
           name: diagnostic
       - test-script-run
-      - test-extract-inline-orb
+      - extract-inline-orb:
+          file: "extract-inline-orb/build-tools.yml"
       - build-tools/introspect-orbs
+      - orb-tools/publish:
+          checkout: false
+          attach-workspace: true
+          orb-path: "extract-inline-orb/orb.yml"
+          orb-ref: "sandbox/build-tools@dev:${CIRCLE_BRANCH}"
+          publish-token-variable: "$ORB_DEV_PUBLISHING_TOKEN"
+          requires:
+            - extract-inline-orb
 
