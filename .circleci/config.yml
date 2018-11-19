@@ -310,14 +310,16 @@ commands:
                 write_lines = true if line.slice(indent, orb.size) == orb
               end
             end
-            File.open(File.expand_path('<< parameters.save-file >>'), "w+") do |f|
-              f.puts(lines)
-            end
-            fh = open File.expand_path('<< parameters.save-file >>')
-            fh.each do |line|
-              puts line
-            end
-            fh.close
+            final = lines.join("\n").unindent
+            puts final
+            # File.open(File.expand_path('<< parameters.save-file >>'), "w+") do |f|
+            #   f.puts(lines)
+            # end
+            # fh = open File.expand_path('<< parameters.save-file >>')
+            # fh.each do |line|
+            #   puts line
+            # end
+            # fh.close
 executors:
   test:
     docker:
