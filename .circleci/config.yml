@@ -299,6 +299,7 @@ commands:
             inside_orbs_stanza = false
             initial_indent = 0
             debug = false
+            version = 'version: unknown'
 
             File.readlines(file).each do |line|
               indent = line[/\A */].size
@@ -307,7 +308,7 @@ commands:
                 next
               end
               if indent == 0 && line.slice(0, 8).downcase == "version:"
-                lines.unshift line
+                version = line
               end
               if debug
                 puts '------ LINE ---------'
@@ -342,6 +343,7 @@ commands:
                 write_lines = true if line.slice(indent, orb.size) == orb
               end
             end
+            lines.unshift((" " * initial_indent) + version)
             final = lines.join("").unindent
             puts "WRITING FILE: << parameters.file >>"
             File.open(File.expand_path('<< parameters.file >>'), "w") { |file| file.write(final) }
