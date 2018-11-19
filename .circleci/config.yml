@@ -99,7 +99,9 @@ orbs:
         steps:
           - run:
               name: Init file << parameters.file >>
-              command: mkdir -p $( dirname "<< parameters.file >>") && touch "<< parameters.file >>"
+              command: >
+                mkdir -p $( dirname "<< parameters.file >>")
+                && touch "<< parameters.file >>"
     jobs:
       diagnostic:
         description: >
