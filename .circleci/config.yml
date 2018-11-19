@@ -291,6 +291,11 @@ commands:
               # and we are capturing even empty lines
               if write_lines
                 # if this line has the same as the originating indent, we are done
+                puts '------- INDENT AND INITIAL_INDENT ----------'
+                puts indent
+                puts initial_indent
+                puts line
+                puts '.....'
                 break if indent == initial_indent
                 # write the line
                 lines.push line
