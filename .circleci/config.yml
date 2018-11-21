@@ -112,10 +112,11 @@ orbs:
           - run:
               name: "Ensure that << parameters.command >> exists, or abort the job"
               command: |
+                set -e
                 if command -v << parameters.command >> > /dev/null 2>&1; then
-                  echo << parameters.command >> is available
+                  echo The command `<< parameters.command >>` is available
                 else
-                  echo << parameters.command >> is not available, but `ensure_command` was called. Aborting job.
+                  echo The command `<< parameters.command >>` is not available, but `ensure_command` was called. Aborting job.
                   exit 1
                 fi
       extract-inline-orb:
