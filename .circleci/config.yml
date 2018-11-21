@@ -427,7 +427,7 @@ workflows:
           attach-workspace: true
           orb-path: "extract-inline-orb/build-tools.yml"
           orb-ref: "sandbox/build-tools@dev:${CIRCLE_BRANCH}"
-          publish-token-variable: "$ORB_DEV_PUBLISHING_TOKEN"
+          publish-token-variable: "$CIRCLECI_API_TOKEN"
           requires:
             - test-extract-inline-orb
 
