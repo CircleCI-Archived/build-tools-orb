@@ -418,7 +418,7 @@ workflows:
       - build-tools/diagnostic:
           name: diagnostic
       - test-script-run
-      - extract-inline-orb:
+      - test-extract-inline-orb:
           file: "extract-inline-orb/build-tools.yml"
           orb: "build-tools"
       - build-tools/introspect-orbs
@@ -429,5 +429,5 @@ workflows:
           orb-ref: "sandbox/build-tools@dev:${CIRCLE_BRANCH}"
           publish-token-variable: "$ORB_DEV_PUBLISHING_TOKEN"
           requires:
-            - extract-inline-orb
+            - test-extract-inline-orb
 
