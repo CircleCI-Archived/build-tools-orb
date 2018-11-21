@@ -135,9 +135,9 @@ orbs:
         steps:
           # TODO: should validate we're getting good config yaml as an input
           - run: gem install unindent
-          - build-tools/init-file:
+          - init-file:
               file: << parameters.file >>
-          - build-tools/script-run:
+          - script-run:
               script: |
                 #!/usr/local/bin/ruby
                 # NOTE: this is a brute-force method that does straight string
