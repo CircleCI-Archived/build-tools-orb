@@ -73,7 +73,7 @@ orbs:
             default: script-run-persisted
           label:
             type: string
-            default: Write the file and run the created script
+            default: Run the script (in the `script-run` command in build-tools)
           output-file:
             type: string
             default: ""
