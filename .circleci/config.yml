@@ -163,6 +163,7 @@ orbs:
           - init-file:
               file: << parameters.file >>
           - script-run:
+              label: "Extract the orb `<< parameters.orb >>` and write it to: << parameters.file >> "
               script: |
                 #!/usr/local/bin/ruby
                 # NOTE: this is a brute-force method that does straight string
