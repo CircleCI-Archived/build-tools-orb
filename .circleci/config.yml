@@ -110,13 +110,13 @@ orbs:
             description: The name of the command that needs to exist.
         steps:
           - run:
-              name: "Ensure that << parameters.command >> exists"
+              name: "Ensure that << parameters.command >> exists, or abort the job"
               command: |
                 if command -v << parameters.command >> > /dev/null 2>&1; then
                   echo << parameters.command >> is available
                 else
-                  echo << parameters.command >> is not available. Aborting job.
-                  circleci-agent step halt
+                  echo << parameters.command >> is not available, but `ensure_command` was called. Aborting job.
+                  exit 1
                 fi
       extract-inline-orb:
         parameters:
