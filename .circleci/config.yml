@@ -120,6 +120,12 @@ orbs:
                   exit 1
                 fi
       extract-inline-orb:
+        description: >
+          Given an source path to a CircleCI config, and the name of an inline orb,
+          extract that orb directly from the YAML and write it to the file.
+          Optionally, save that file to a workspace and/or artifact.
+          Note: this command is designed to run in a an executor with ruby 2.4.x
+          and will check to make sure that `gem` is installed.
         parameters:
           orb:
             type: string
