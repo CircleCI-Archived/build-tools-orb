@@ -102,6 +102,22 @@ orbs:
               command: >
                 mkdir -p $( dirname "<< parameters.file >>")
                 && touch "<< parameters.file >>"
+      ensure-command:
+        description: Given a command name, make sure it exists in the runtime, abort the job if it does not.
+        parameters:
+          command:
+            type: string
+            description: The name of the command that needs to exist.
+        steps:
+          - run:
+              name: "Ensure that << parameters.command >> exists"
+              command: |
+                if command -v << parameters.command >> > /dev/null 2>&1; then
+                  echo << parameters.command >> is available
+                else
+                  echo << parameters.command >> is not available. Aborting job.
+                  circleci-agent step halt
+                fi
       extract-inline-orb:
         parameters:
           orb:
@@ -134,6 +150,8 @@ orbs:
               directory.
         steps:
           # TODO: should validate we're getting good config yaml as an input
+          - ensure-command:
+              command: "gem"
           - run: gem install unindent
           - init-file:
               file: << parameters.file >>
