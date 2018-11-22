@@ -1,6 +1,5 @@
 version: 2.1
 orbs:
-  orb-tools: circleci/orb-tools@dev:master
   build-tools:
     description: >
       An orb with general-purpose tools that can come in handy in debugging
@@ -36,7 +35,6 @@ orbs:
             default: latest
         docker:
           - image: bash:<< parameters.tag >>
-
     commands:
       diagnostic:
         description: Output basic info about the build environment to help in a diagnostic.
@@ -75,7 +73,7 @@ orbs:
             default: script-run-persisted
           label:
             type: string
-            default: Write the file and run the created script
+            default: Run the script (in the `script-run` command in build-tools)
           output-file:
             type: string
             default: ""
@@ -91,15 +89,174 @@ orbs:
                 cat \<< ENDOFSCRIPTINTHISORB > $tmpfile
                 << parameters.script >>
                 ENDOFSCRIPTINTHISORB
-                << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file   >> >> << parameters.output-file >><</ parameters.output-file >>
+                << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file >> >> << parameters.output-file >><</ parameters.output-file >>
+      init-file:
+        description: Given a file path, make sure the directories and the file exist
+        parameters:
+          file:
+            type: string
+            description: Path to the file you want to ensure exists.
+        steps:
+          - run:
+              name: Init file << parameters.file >>
+              command: >
+                mkdir -p $( dirname "<< parameters.file >>")
+                && touch "<< parameters.file >>"
+      ensure-command:
+        description: Given a command name, make sure it exists in the runtime, abort the job if it does not.
+        parameters:
+          command:
+            type: string
+            description: The name of the command that needs to exist.
+        steps:
+          - run:
+              name: "Ensure the command << parameters.command >> exists, or abort the job"
+              command: |
+                set -e
+                if command -v << parameters.command >> > /dev/null 2>&1; then
+                  echo The command << parameters.command >> is available
+                else
+                  echo The command << parameters.command >> is not available, but ensure_command was called. Aborting job.
+                  exit 1
+                fi
+      extract-inline-orb:
+        description: >
+          Given an source path to a CircleCI config, and the name of an inline orb,
+          extract that orb directly from the YAML and write it to the file.
+          Optionally, save that file to a workspace and/or artifact.
+          Note: this command is designed to run in a an executor with ruby 2.4.x
+          and will check to make sure that `gem` is installed.
+        parameters:
+          orb:
+            type: string
+            description: name of the orb you want to extract
+          source:
+            type: string
+            description: >
+              A path to the valid CircleCI config from
+              which you want to extract the inline orb.
+          file:
+            type: string
+            description: Path to the file where the orb should be saved
+            default: ".circleci/extract-inline-orb/orb.yml"
+          save-artifact:
+            type: boolean
+            default: true
+            description: When true (default), save an artifact at `file` path
+          save-workspace:
+            type: boolean
+            default: true
+            description: When true (default), save the `file` to the workspace
+          workspace-root:
+            type: string
+            default: "."
+            description: >
+              In most cases you do not need to change this value. The default is
+              the current working directory (`.`). You would only change this if
+              your value for `file` is not relative to the root of your working
+              directory.
+        steps:
+          # TODO: should validate we're getting good config yaml as an input
+          - ensure-command:
+              command: "gem"
+          - run: gem install unindent
+          - init-file:
+              file: << parameters.file >>
+          - script-run:
+              label: "Extract the orb `<< parameters.orb >>` and write it to: << parameters.file >> "
+              script: |
+                #!/usr/local/bin/ruby
+                # NOTE: this is a brute-force method that does straight string
+                # manipulation rather than parsing the YAML in order to preserve
+                # all comments and spacing exactly as the author wrote them (other
+                # than outdenting everything in the final string).
+                # This could probably be more elegant in various ways if you're
+                # interesting in refactoring...
+                require 'json'
+                require 'unindent'
+                file='<< parameters.source >>'
+                orb='<< parameters.orb >>'
+                lines = []
+                write_lines = false
+                inside_orbs_stanza = false
+                initial_indent = 0
+                debug = false
+                version = 'version: unknown'
+
+                File.readlines(file).each do |line|
+                  indent = line[/\A */].size
+                  if indent == 0 && line.slice(0, 5).downcase == "orbs:"
+                    inside_orbs_stanza = true
+                    next
+                  end
+                  if indent == 0 && line.slice(0, 8).downcase == "version:"
+                    version = line
+                  end
+                  # leaving this in for now because it's innocuous and useful.
+                  # The debug flag will be handy as the code stabilizes.
+                  if debug
+                    puts '------ LINE ---------'
+                    puts 'line: ' + line.to_s
+                    puts 'indent: ' + indent.to_s
+                    puts 'initial_indent: ' + initial_indent.to_s
+                    puts 'inside_orbs_stanza: ' + inside_orbs_stanza.to_s
+                    puts 'write_lines: ' + write_lines.to_s
+                  end
+                  # if we are writing lines we are looking for the end
+                  # and we are capturing even empty lines
+                  if write_lines
+                    # if this line has the same as the originating indent, we are done
+                    break if indent == initial_indent
+                    # write the line
+                    lines.push line
+                  end
+
+                  # if this is an empty line, skip ahead
+                  next if line.strip.empty?
+
+                  if inside_orbs_stanza
+                    # if this line has no indent it means we are no longer in the orbs stanza
+                    break if indent == 0
+                    ## if we are inside the orbs inside the orbs stanza
+                    ## but have not yet set the indent, it should mean
+                    ## the line we are on is the right initial indent
+                    if initial_indent == 0
+                      initial_indent = indent
+                    end
+                    puts line.slice(indent, orb.size) if debug
+                    write_lines = true if line.slice(indent, orb.size) == orb
+                  end
+                end
+                final = lines.join("").unindent.prepend(version + "\n")
+                puts "WRITING FILE: << parameters.file >>"
+                File.open(File.expand_path('<< parameters.file >>'), "w") { |file| file.write(final) }
+          - when:
+              condition: << parameters.save-artifact >>
+              steps:
+                - store_artifacts:
+                    path: << parameters.file >>
+          - when:
+              condition: << parameters.save-workspace >>
+              steps:
+                - persist_to_workspace:
+                    root: << parameters.workspace-root >>
+                    paths:
+                      - << parameters.file >>
+          - run:
+              name: Display extracted orb
+              command: cat "<< parameters.file >>"
     jobs:
       diagnostic:
-        description: A job that runs a basic diagnostic of your build and outputs some handy information.
+        description: >
+          A job that runs a basic diagnostic of your build
+          and outputs some handy information.
         executor: default
         steps:
           - diagnostic
       introspect-orbs:
-        description: A job that outputs information about all the orbs used in the build in which the job is invoked.
+        description: >
+          A job that outputs information about all the
+          orbs used in the build in which the job is invoked.
         docker:
           - image: circleci/ruby:2.4.1
         parameters:
@@ -233,11 +390,18 @@ orbs:
                     @indent = @indent - 2
                   end
                 end
-jobs:
-  test-script-run:
+  orb-tools: circleci/orb-tools@volatile
+commands:
+  
+executors:
+  test:
     docker:
       - image: circleci/ruby:2.4.1
     working_directory: ~/.circleci/temp/
+
+jobs:
+  test-script-run:
+    executor: test
     steps:
       - build-tools/script-run:
           output-file: "./myfile.txt"
@@ -254,12 +418,45 @@ jobs:
             fi
             echo 'Script did not work as expected.'
             exit 1
+  test-extract-inline-orb:
+    parameters:
+      source:
+        type: string
+        default: "./.circleci/config.yml"
+      orb:
+        type: string
+      file:
+        type: string
+    executor: test
+    steps:
+      - checkout
+      - build-tools/extract-inline-orb:
+          source: << parameters.source >>
+          orb: << parameters.orb >>
+          file: << parameters.file >>
 
+  # extract-and-publish-build-tools:
+  #   executor: test
+  #   steps:
+  #     - checkout
+  #     # - extract-inline-orb:
+  #     #     file: ./.circleci/config.yml
 workflows:
   btd:
     jobs:
       - build-tools/diagnostic:
           name: diagnostic
       - test-script-run
+      - test-extract-inline-orb:
+          file: "extract-inline-orb/build-tools.yml"
+          orb: "build-tools"
       - build-tools/introspect-orbs
+      - orb-tools/publish:
+          checkout: false
+          attach-workspace: true
+          orb-path: "extract-inline-orb/build-tools.yml"
+          orb-ref: "sandbox/build-tools@dev:${CIRCLE_BRANCH}"
+          publish-token-variable: "$CIRCLECI_API_TOKEN"
+          requires:
+            - test-extract-inline-orb
 
