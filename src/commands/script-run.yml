@@ -1,0 +1,41 @@
+description: >
+  Given a string (can be multi-line), write that string to a file,
+  make it executable, and run it.
+
+parameters:
+  script:
+    type: string
+    description: >
+      A string containing your entire script.
+      If you want to make this inline we recommend using the `|` operator
+      in YAML to create a multi-line string.
+
+  file-directory:
+    type: string
+    default: "~/.circleci/orbs/script-run/"
+
+  file-name:
+    type: string
+    default: script-run-persisted
+
+  label:
+    type: string
+    default: Run the script (in the `script-run` command in build-tools)
+
+  output-file:
+    type: string
+    default: ""
+    description: When present, save the output to a file at the path given. otherwise, output directly.
+
+steps:
+  - run:
+      name: << parameters.label >>
+      command: |
+        mkdir -p << parameters.file-directory >>
+        tmpfile=<< parameters.file-directory >><< parameters.file-name >>
+        touch $tmpfile
+        sudo chmod +x $tmpfile
+        cat \<< ENDOFSCRIPTINTHISORB > $tmpfile
+        << parameters.script >>
+        ENDOFSCRIPTINTHISORB
+        << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file >> >> << parameters.output-file >><</ parameters.output-file >>

@@ -1,0 +1,8 @@
+description: >
+  A job that runs a basic diagnostic of your build
+  and outputs some handy information.
+
+executor: default
+
+steps:
+  - diagnostic
