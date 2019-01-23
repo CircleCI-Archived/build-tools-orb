@@ -1,0 +1,7 @@
+parameters:
+  tag:
+    type: string
+    default: stretch-scm
+
+docker:
+  - image: circleci/buildpack-deps:<< parameters.tag >>

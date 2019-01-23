@@ -1,462 +1,205 @@
 version: 2.1
+
 orbs:
-  build-tools:
-    description: >
-      An orb with general-purpose tools that can come in handy in debugging
-      or analyzing your builds.
-    orbs:
-      cli: circleci/circleci-cli@volatile
-    executors:
-      default:
-        parameters:
-          tag:
-            type: string
-            default: stretch-scm
-        docker:
-          - image: circleci/buildpack-deps:<< parameters.tag >>
-      python:
-        parameters:
-          tag:
-            type: string
-            default: "3.6.6"
-        docker:
-          - image: circleci/python:<< parameters.tag >>
-      ruby:
-        parameters:
-          tag:
-            type: string
-            default: "2.4.1"
-        docker:
-          - image: circleci/ruby:<< parameters.tag >>
-      bash:
-        parameters:
-          tag:
-            type: string
-            default: latest
-        docker:
-          - image: bash:<< parameters.tag >>
-    commands:
-      diagnostic:
-        description: Output basic info about the build environment to help in a diagnostic.
-        steps:
-          - run:
-              name: "Show system information"
-              command: |
-                echo "uname -a:" $(uname -a)
-                echo "arch: " $(arch)
-          - run:
-              name: "Show build info from CircleCI env vars"
-              command: |
-                echo "TRIGGERER: ${CIRCLE_USERNAME}"
-                echo "BUILD_NUMBER: ${CIRCLE_BUILD_NUM}"
-                echo "BUILD_URL: ${CIRCLE_BUILD_URL}"
-                echo "BRANCH: ${CIRCLE_BRANCH}"
-                echo "RUNNING JOB: ${CIRCLE_JOB}"
-                echo "JOB PARALLELISM: ${CIRCLE_NODE_TOTAL}"
-                echo "CIRCLE_REPOSITORY_URL: ${CIRCLE_REPOSITORY_URL}"
-      script-run:
-        description: >
-          Given a string (can be multi-line), write that string to a file,
-          make it executable, and run it.
-        parameters:
-          script:
-            type: string
-            description: >
-              A string containing your entire script.
-              If you want to make this inline we recommend using the `|` operator
-              in YAML to create a multi-line string.
-          file-directory:
-            type: string
-            default: "~/.circleci/orbs/script-run/"
-          file-name:
-            type: string
-            default: script-run-persisted
-          label:
-            type: string
-            default: Run the script (in the `script-run` command in build-tools)
-          output-file:
-            type: string
-            default: ""
-            description: When present, save the output to a file at the path given. otherwise, output directly.
-        steps:
-          - run:
-              name: << parameters.label >>
-              command: |
-                mkdir -p << parameters.file-directory >>
-                tmpfile=<< parameters.file-directory >><< parameters.file-name >>
-                touch $tmpfile
-                sudo chmod +x $tmpfile
-                cat \<< ENDOFSCRIPTINTHISORB > $tmpfile
-                << parameters.script >>
-                ENDOFSCRIPTINTHISORB
-                << parameters.file-directory >><< parameters.file-name >><<# parameters.output-file >> >> << parameters.output-file >><</ parameters.output-file >>
-      init-file:
-        description: Given a file path, make sure the directories and the file exist
-        parameters:
-          file:
-            type: string
-            description: Path to the file you want to ensure exists.
-        steps:
-          - run:
-              name: Init file << parameters.file >>
-              command: >
-                mkdir -p $( dirname "<< parameters.file >>")
-                && touch "<< parameters.file >>"
-      ensure-command:
-        description: Given a command name, make sure it exists in the runtime, abort the job if it does not.
-        parameters:
-          command:
-            type: string
-            description: The name of the command that needs to exist.
-        steps:
-          - run:
-              name: "Ensure the command << parameters.command >> exists, or abort the job"
-              command: |
-                set -e
-                if command -v << parameters.command >> > /dev/null 2>&1; then
-                  echo The command << parameters.command >> is available
-                else
-                  echo The command << parameters.command >> is not available, but ensure_command was called. Aborting job.
-                  exit 1
-                fi
-      extract-inline-orb:
-        description: >
-          Given an source path to a CircleCI config, and the name of an inline orb,
-          extract that orb directly from the YAML and write it to the file.
-          Optionally, save that file to a workspace and/or artifact.
-          Note: this command is designed to run in a an executor with ruby 2.4.x
-          and will check to make sure that `gem` is installed.
-        parameters:
-          orb:
-            type: string
-            description: name of the orb you want to extract
-          source:
-            type: string
-            description: >
-              A path to the valid CircleCI config from
-              which you want to extract the inline orb.
-          file:
-            type: string
-            description: Path to the file where the orb should be saved
-            default: ".circleci/extract-inline-orb/orb.yml"
-          save-artifact:
-            type: boolean
-            default: true
-            description: When true (default), save an artifact at `file` path
-          save-workspace:
-            type: boolean
-            default: true
-            description: When true (default), save the `file` to the workspace
-          workspace-root:
-            type: string
-            default: "."
-            description: >
-              In most cases you do not need to change this value. The default is
-              the current working directory (`.`). You would only change this if
-              your value for `file` is not relative to the root of your working
-              directory.
-        steps:
-          # TODO: should validate we're getting good config yaml as an input
-          - ensure-command:
-              command: "gem"
-          - run: gem install unindent
-          - init-file:
-              file: << parameters.file >>
-          - script-run:
-              label: "Extract the orb `<< parameters.orb >>` and write it to: << parameters.file >> "
-              script: |
-                #!/usr/local/bin/ruby
-                # NOTE: this is a brute-force method that does straight string
-                # manipulation rather than parsing the YAML in order to preserve
-                # all comments and spacing exactly as the author wrote them (other
-                # than outdenting everything in the final string).
-                # This could probably be more elegant in various ways if you're
-                # interesting in refactoring...
-                require 'json'
-                require 'unindent'
-                file='<< parameters.source >>'
-                orb='<< parameters.orb >>'
-                lines = []
-                write_lines = false
-                inside_orbs_stanza = false
-                initial_indent = 0
-                debug = false
-                version = 'version: unknown'
+  build-tools: circleci/build-tools@dev:alpha
+  circle-compare-url: iynere/compare-url@0.4.5
+  orb-tools: circleci/orb-tools@3.0.0
 
-                File.readlines(file).each do |line|
-                  indent = line[/\A */].size
-                  if indent == 0 && line.slice(0, 5).downcase == "orbs:"
-                    inside_orbs_stanza = true
-                    next
-                  end
-                  if indent == 0 && line.slice(0, 8).downcase == "version:"
-                    version = line
-                  end
-                  # leaving this in for now because it's innocuous and useful.
-                  # The debug flag will be handy as the code stabilizes.
-                  if debug
-                    puts '------ LINE ---------'
-                    puts 'line: ' + line.to_s
-                    puts 'indent: ' + indent.to_s
-                    puts 'initial_indent: ' + initial_indent.to_s
-                    puts 'inside_orbs_stanza: ' + inside_orbs_stanza.to_s
-                    puts 'write_lines: ' + write_lines.to_s
-                  end
-                  # if we are writing lines we are looking for the end
-                  # and we are capturing even empty lines
-                  if write_lines
-                    # if this line has the same as the originating indent, we are done
-                    break if indent == initial_indent
-                    # write the line
-                    lines.push line
-                  end
-
-                  # if this is an empty line, skip ahead
-                  next if line.strip.empty?
-
-                  if inside_orbs_stanza
-                    # if this line has no indent it means we are no longer in the orbs stanza
-                    break if indent == 0
-                    ## if we are inside the orbs inside the orbs stanza
-                    ## but have not yet set the indent, it should mean
-                    ## the line we are on is the right initial indent
-                    if initial_indent == 0
-                      initial_indent = indent
-                    end
-                    puts line.slice(indent, orb.size) if debug
-                    write_lines = true if line.slice(indent, orb.size) == orb
-                  end
-                end
-                final = lines.join("").unindent.prepend(version + "\n")
-                puts "WRITING FILE: << parameters.file >>"
-                File.open(File.expand_path('<< parameters.file >>'), "w") { |file| file.write(final) }
-          - when:
-              condition: << parameters.save-artifact >>
-              steps:
-                - store_artifacts:
-                    path: << parameters.file >>
-          - when:
-              condition: << parameters.save-workspace >>
-              steps:
-                - persist_to_workspace:
-                    root: << parameters.workspace-root >>
-                    paths:
-                      - << parameters.file >>
-          - run:
-              name: Display extracted orb
-              command: cat "<< parameters.file >>"
-    jobs:
-      diagnostic:
-        description: >
-          A job that runs a basic diagnostic of your build
-          and outputs some handy information.
-        executor: default
-        steps:
-          - diagnostic
-      introspect-orbs:
-        description: >
-          A job that outputs information about all the
-          orbs used in the build in which the job is invoked.
-        docker:
-          - image: circleci/ruby:2.4.1
-        parameters:
-          checkout:
-            type: boolean
-            default: true
-            description: >
-              Boolean for whether to run a `checkout` first
-               - default is false for the command, assuming you
-               may have already done checkout in your job.
-          config-path:
-            type: string
-            default: ".circleci/config.yml"
-          working-file:
-            type: string
-            default: '~/.circleci/orb-introspection.yml'
-        steps:
-          - when:
-              condition: << parameters.checkout >>
-              steps:
-                - checkout
-          - cli/install
-          - run:
-              name: Install dependencies
-              command: |
-                gem install markdown-tables
-                gem install indentation
-                gem install colorize
-          - script-run:
-              # TODO -- this is a bit heavy-handed and could probably be made much more elegant
-              label: "Get the orb source for all the orbs used in << parameters.config-path >>"
-              file-name: orb-instrospect.rb
-              script: |
-                #!/usr/local/bin/ruby
-                require 'yaml'
-                require 'open3'
-                require 'fileutils'
-                orbs = YAML.load_file('<< parameters.config-path >>')["orbs"]
-                if orbs.nil?
-                  puts "No orbs were found in << parameters.config-path >>."
-                  exit true
-                end
-                metadata = {}
-                orbs.each do |key, content|
-                  metadata[key] = {}
-                  if content.is_a?(String)
-                    puts 'found orb ref ' + content + ' - attempting to pull source'
-                    stdout_str, error_str, status = Open3.capture3('/usr/local/bin/circleci', 'orb', 'source', content)
-                    puts error_str unless error_str.nil?
-                    orbs[key] = YAML.load(stdout_str)
-                    metadata[key]['ref'] = content
-                  else
-                    puts 'local orb ' + key + ' is inline.'
-                    metadata[key]['ref'] = "inline"
-                  end
-                  content = orbs[key]
-                  metadata[key]['description'] = content['description']
-                  ['executors','commands','jobs'].each do |elem|
-                    unless content[elem].nil?
-                      metadata[key][elem] = {}
-                      content[elem].each do |name, value|
-                        metadata[key][elem][name] = {}
-                        metadata[key][elem][name]['parameters'] = content[elem][name]['parameters']
-                        metadata[key][elem][name]['description'] = content[elem][name]['description']
-                      end
-                    end
-                  end
-                end
-                puts metadata.to_yaml
-                FileUtils.mkdir_p(File.dirname('<< parameters.working-file >>'))
-                open('<< parameters.working-file >>', 'w') do |f|
-                  f.puts metadata.to_yaml
-                end
-          - script-run:
-              label: "Display orb info for << parameters.config-path >>"
-              file-name: orb-instrospect.rb
-              script: |
-                #!/usr/local/bin/ruby
-                require 'yaml'
-                require 'indentation'
-                require 'markdown-tables'
-                require 'colorize'
-                orbs = YAML.load_file('<< parameters.working-file >>')
-                def disp(str)
-                  return if str.nil?
-                  puts str.indent(@indent)
-                end
-                def description_process(s, width=40)
-                  return if s.nil?
-                  maxlen = 50
-                  truncate_string = "..."
-                  l = maxlen - s.chars.length
-                  (s.length > maxlen ? s[0...l] + truncate_string : s).to_s.tr("\n"," ")
-                end
-                def parameter_table(params)
-                  return if params.nil?
-                  labels = ['name', 'type', 'default', 'description']
-                  data = []
-                  params.each do |param, paramcontent|
-                    data.push([param, paramcontent['type'], paramcontent['default'], description_process(paramcontent['description'])])
-                  end
-                  md_table = MarkdownTables.make_table(labels, data, is_rows: true, align: ['l', 'l', 'l', 'l'])
-                  MarkdownTables.plain_text(md_table)
-                end
-
-                puts '# ORBS'
-                puts '---------------------------------'
-                orbs.each do |orb_alias, details|
-                  @indent = 0
-                  disp '## ' + orb_alias.colorize(:blue).colorize(:bold) + ' (' + details['ref'] + ')'
-                  unless details['description'].nil?
-                    disp details['description']
-                  end
-                  @indent = @indent + 2
-                  ['jobs', 'executors', 'commands'].each do |element|
-                    disp '### ' + element.capitalize
-                    @indent = @indent + 2
-                    if details[element].nil?
-                      disp "NONE"
-                      @indent = @indent - 2
-                      next
-                    end
-                    details[element].each do |item, content|
-                      disp (orb_alias + '/' + item).colorize(:blue)
-                      @indent = @indent + 2
-                      disp content['description']
-                      disp parameter_table(content['parameters'])
-                      puts ""
-                      @indent = @indent - 2
-                    end
-                    @indent = @indent - 2
-                  end
-                end
-  orb-tools: circleci/orb-tools@volatile
-commands:
-  
 executors:
-  test:
+  cibuilds:
+    resource_class: small
     docker:
-      - image: circleci/ruby:2.4.1
-    working_directory: ~/.circleci/temp/
+      - image: cibuilds/base
+
+  cli:
+    resource_class: small
+    docker:
+      - image: circleci/circleci-cli
+
+  lint:
+    resource_class: small
+    docker:
+      - image: singapore/lint-condo
 
 jobs:
-  test-script-run:
-    executor: test
-    steps:
-      - build-tools/script-run:
-          output-file: "./myfile.txt"
-          script: |
-            #!/usr/local/bin/ruby
-            puts "Orb OK"
-      - run:
-          name: Check to be sure the script did what was expected
-          command: |
-            value=$( cat ./myfile.txt )
-            if [ "$value" == "Orb OK" ] ; then
-              echo 'Script worked as expected. OK.'
-              exit 0
-            fi
-            echo 'Script did not work as expected.'
-            exit 1
-  test-extract-inline-orb:
-    parameters:
-      source:
-        type: string
-        default: "./.circleci/config.yml"
-      orb:
-        type: string
-      file:
-        type: string
-    executor: test
+  lint:
+    executor: lint
     steps:
       - checkout
-      - build-tools/extract-inline-orb:
-          source: << parameters.source >>
-          orb: << parameters.orb >>
-          file: << parameters.file >>
+      - run: yamllint .
 
-  # extract-and-publish-build-tools:
-  #   executor: test
-  #   steps:
-  #     - checkout
-  #     # - extract-inline-orb:
-  #     #     file: ./.circleci/config.yml
+  # validate goes here: see workflow
+
+  publish-dev:
+    executor: cli
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: workspace
+
+      - run:
+          name: publish various dev versions
+          command: |
+            # dev:alpha, for integration testing
+            circleci orb publish workspace/orb.yml circleci/build-tools@dev:alpha --token $CIRCLE_TOKEN
+
+            # branch + sha, for transparency
+            circleci orb publish workspace/orb.yml circleci/build-tools@dev:$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7} --token $CIRCLE_TOKEN
+
+            # sha only, for potential prod promotion
+            circleci orb publish workspace/orb.yml circleci/build-tools@dev:${CIRCLE_SHA1:0:7} --token $CIRCLE_TOKEN
+
+      - store_artifacts:
+          path: workspace/orb.yml
+
+  trigger-integration:
+    executor: cibuilds
+    parameters:
+      tag:
+        type: enum
+        default: "integration"
+        enum: ["integration", master]
+    steps:
+      - checkout
+
+      - add_ssh_keys:
+          fingerprints:
+            - "16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84"
+
+      - run:
+          name: git config
+          command: |
+            git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
+            git config --global user.name "$CIRCLE_USERNAME"
+
+      - circle-compare-url/reconstruct
+
+      - run:
+          name: trigger integration workflow, possible patch / minor / major release
+          command: |
+            CIRCLE_COMPARE_URL=$(cat CIRCLE_COMPARE_URL.txt)
+
+            COMMIT_RANGE=$(echo $CIRCLE_COMPARE_URL | sed 's:^.*/compare/::g')
+
+            echo "Commit range: $COMMIT_RANGE"
+
+            if [[ $(git diff $COMMIT_RANGE --name-status | grep -e "src/commands" -e "src/jobs") ]]; then
+              INTEGRATION_TAG=<<parameters.tag>>-major-$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
+
+            elif [[ $(git diff $COMMIT_RANGE --name-status | grep -e "src/examples" -e "src/executors" -e "src/@orb.yml") ]]; then
+              INTEGRATION_TAG=<<parameters.tag>>-minor-$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
+
+            elif [[ $(git diff $COMMIT_RANGE --name-status | grep -e "config.yml") ]]; then
+              INTEGRATION_TAG=<<parameters.tag>>-patch-$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
+
+            else
+              INTEGRATION_TAG=<<parameters.tag>>-skip-$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
+            fi
+
+            git tag $INTEGRATION_TAG
+            git push origin $INTEGRATION_TAG
+
 workflows:
-  btd:
+  lint_pack-validate_publish-dev:
     jobs:
-      - build-tools/diagnostic:
-          name: diagnostic
-      - test-script-run
-      - test-extract-inline-orb:
-          file: "extract-inline-orb/build-tools.yml"
-          orb: "build-tools"
-      - build-tools/introspect-orbs
-      - orb-tools/publish:
-          checkout: false
-          attach-workspace: true
-          orb-path: "extract-inline-orb/build-tools.yml"
-          orb-ref: "sandbox/build-tools@dev:${CIRCLE_BRANCH}"
-          publish-token-variable: "$CIRCLECI_API_TOKEN"
+      - lint
+
+      - orb-tools/pack:
+          name: pack-validate
+          workspace-path: orb.yml
+          artifact-path: orb.yml
           requires:
-            - test-extract-inline-orb
+            - lint
+
+      - publish-dev:
+          context: orb-publishing
+          requires:
+            - pack-validate
+
+      - trigger-integration:
+          name: trigger-integration-dev
+          context: orb-publishing
+          requires: [publish-dev]
+          filters:
+            branches:
+              ignore: master
+
+      - trigger-integration:
+          name: trigger-integration-master
+          context: orb-publishing
+          tag: master
+          requires: [publish-dev]
+          filters:
+            branches:
+              only: master
+
+# commands:
+
+# executors:
+#   test:
+#     docker:
+#       - image: circleci/ruby:2.4.1
+#     working_directory: ~/.circleci/temp/
+
+# jobs:
+#   test-script-run:
+#     executor: test
+#     steps:
+#       - build-tools/script-run:
+#           output-file: "./myfile.txt"
+#           script: |
+#             #!/usr/local/bin/ruby
+#             puts "Orb OK"
+#       - run:
+#           name: Check to be sure the script did what was expected
+#           command: |
+#             value=$( cat ./myfile.txt )
+#             if [ "$value" == "Orb OK" ] ; then
+#               echo 'Script worked as expected. OK.'
+#               exit 0
+#             fi
+#             echo 'Script did not work as expected.'
+#             exit 1
+#   test-extract-inline-orb:
+#     parameters:
+#       source:
+#         type: string
+#         default: "./.circleci/config.yml"
+#       orb:
+#         type: string
+#       file:
+#         type: string
+#     executor: test
+#     steps:
+#       - checkout
+#       - build-tools/extract-inline-orb:
+#           source: << parameters.source >>
+#           orb: << parameters.orb >>
+#           file: << parameters.file >>
+
+#   # extract-and-publish-build-tools:
+#   #   executor: test
+#   #   steps:
+#   #     - checkout
+#   #     # - extract-inline-orb:
+#   #     #     file: ./.circleci/config.yml
+# workflows:
+#   btd:
+#     jobs:
+#       - build-tools/diagnostic:
+#           name: diagnostic
+#       - test-script-run
+#       - test-extract-inline-orb:
+#           file: "extract-inline-orb/build-tools.yml"
+#           orb: "build-tools"
+#       - build-tools/introspect-orbs
+#       - orb-tools/publish:
+#           checkout: false
+#           attach-workspace: true
+#           orb-path: "extract-inline-orb/build-tools.yml"
+#           orb-ref: "sandbox/build-tools@dev:${CIRCLE_BRANCH}"
+#           publish-token-variable: "$CIRCLECI_API_TOKEN"
+#           requires:
+#             - test-extract-inline-orb
 

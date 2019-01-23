@@ -1,0 +1,7 @@
+parameters:
+  tag:
+    type: string
+    default: latest
+
+docker:
+  - image: bash:<< parameters.tag >>
