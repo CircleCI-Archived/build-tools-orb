@@ -39,7 +39,7 @@ jobs:
       - build-tools/init-file:
           file: ~/project/fastlane/Appfile
 
-      # & with one that does
+      # & with one that does exist
       - build-tools/init-file:
           file: ~/project/fastlane/Fastfile
 
