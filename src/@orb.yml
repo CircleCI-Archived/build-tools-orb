@@ -1,8 +1,8 @@
 version: 2.1
 
 description: >
-  An orb with some general-purpose tools that can come in handy in debugging
-  or analyzing your builds.
+  An orb with some general-purpose tools to help analyze, debug, and
+  optimize your CircleCI builds.
 
 orbs:
-  cli: circleci/circleci-cli@volatile
+  cli: circleci/circleci-cli@0.1.2

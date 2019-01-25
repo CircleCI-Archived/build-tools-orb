@@ -21,6 +21,8 @@ parameters:
   label:
     type: string
     default: Run the script (in the `script-run` command in build-tools)
+    description: >
+      Name for the step in which your script will be run
 
   output-file:
     type: string

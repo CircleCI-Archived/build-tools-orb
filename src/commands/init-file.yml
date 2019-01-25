@@ -1,9 +1,11 @@
-description: Given a file path, make sure the directories and the file exist
+description: >
+  Given a file path, make sure the directories and the file exist;
+  create them if they don't
 
 parameters:
   file:
     type: string
-    description: Path to the file you want to ensure exists.
+    description: Path to the file you want to ensure exists
 
 steps:
   - run:

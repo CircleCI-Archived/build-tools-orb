@@ -1,0 +1,14 @@
+description: >
+  Store diagnostic data as artifacts.
+  Use after running the other diagnostic commands.
+
+parameters:
+  data-dir:
+    type: string
+    default: ~/.ccidiag
+    description: >
+      Directory to store as artifacts (should conform with the value passed to this parameter in the other diagnostic commands)
+
+steps:
+  - store_artifacts:
+      path: <<parameters.data-dir>>

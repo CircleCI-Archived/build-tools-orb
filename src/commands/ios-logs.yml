@@ -1,0 +1,28 @@
+description: >
+  Save Fastlane and Xcode information from an iOS job, to be stored as artifacts and inspected later
+
+parameters:
+  data-dir:
+    type: string
+    default: ~/.ccidiag/ios-logs
+    description: >
+      Directory in which to output job environment information (will be created if necessary)
+
+steps:
+  - run:
+      name: CircleCI diagnostic report (ios-logs)
+      when: always
+      command: |
+        echo "----------------------------------------------------------------------------------------------------"
+        echo "This command will copy a variety of Fastlane and Xcode project data."
+        echo "It can be used to help debug or troubleshoot iOS bugs and errors."
+        echo "----------------------------------------------------------------------------------------------------"
+        echo "Working directory is: $(pwd)"
+        echo "Output will be stored in: <<parameters.data-dir>> (creating it if it does not exist...)"
+        echo "----------------------------------------------------------------------------------------------------"
+        mkdir -p <<parameters.data-dir>>
+        echo export FL_OUTPUT_DIR=~/.ccidiag/ios-logs >> $BASH_ENV
+        cp -R ~/project/fastlane ~/.ccidiag/ios-logs
+        cp ~/project/*.xcodeproj/project.pbxproj ~/.ccidiag/ios-logs
+        echo "----------------------------------------------------------------------------------------------------"
+        echo "iOS diagnostic data has been stored in <<parameters.data-dir>>"

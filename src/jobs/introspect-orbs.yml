@@ -9,9 +9,8 @@ parameters:
     type: boolean
     default: true
     description: >
-      Boolean for whether to run a `checkout` first
-       - default is false for the command, assuming you
-       may have already done checkout in your job.
+      Boolean for whether to run a `checkout` first;
+      default is true
 
   config-path:
     type: string
