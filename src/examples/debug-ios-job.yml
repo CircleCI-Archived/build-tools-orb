@@ -1,0 +1,38 @@
+description: >
+  Use the orb's ios-logs and store-report commands to store iOS diagnostic info for debugging
+
+usage:
+  version: 2.1
+
+  orbs:
+    diagnostic-orb: circleci/diagnostic-orb@1.0.0
+
+  executors:
+    macos:
+      macos:
+        xcode: "10.1.0"
+
+  jobs:
+    build:
+      executor: macos
+      steps:
+        - checkout
+        # rest of your build steps
+
+    deploy:
+      executor: macos
+      steps:
+        - checkout
+        # rest of your deploy steps
+
+  workflows:
+    build-and-deploy:
+      jobs:
+        - build:
+            post-steps:
+              - diagnostic-orb/ios-logs
+              - diagnostic-orb/store-report
+
+        - deploy:
+            requires:
+              - build

@@ -1,0 +1,42 @@
+description: >
+  See how to use this orb's diagnostic commands, with the exception of ios-logs (which has its own example)
+
+usage:
+  version: 2.1
+
+  orbs:
+    diagnostic-orb: circleci/diagnostic-orb@1.0.0
+
+  # this example uses the machine executor; these orb commands
+  # should work in any Debian- or Ubuntu-based environment
+  executors:
+    machine:
+      machine: true
+
+  jobs:
+    build:
+      executor: machine
+      steps:
+        - checkout
+        # rest of your build steps
+
+    deploy:
+      executor: machine
+      steps:
+        - checkout
+        # rest of your deploy steps
+
+  workflows:
+    build-and-deploy:
+      jobs:
+        - build:
+            pre-steps:
+              - diagnostic-orb/env-info
+              - diagnostic-orb/memory
+              - diagnostic-orb/test-results
+            post-steps:
+              - diagnostic-orb/store-report
+
+        - deploy:
+            requires:
+              - build

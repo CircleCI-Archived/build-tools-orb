@@ -1,0 +1,25 @@
+description: >
+  Save memory usage information, to be stored as artifacts and inspected later
+
+parameters:
+  data-dir:
+    type: string
+    default: ~/.ccidiag/memory
+    description: >
+      Directory in which to output memory usage information (will be created if necessary)
+
+steps:
+  - run:
+      name: CircleCI diagnostic report (memory)
+      when: always
+      background: true
+      command: |
+        echo "This command will copy memory usage information to a file, for debugging"
+        echo "----------------------------------------------------------------------------------------------------"
+        echo "Working directory is: $(pwd)"
+        echo "Output will be stored in: <<parameters.data-dir>> (creating it if it does not exist...)"
+        echo "----------------------------------------------------------------------------------------------------"
+        mkdir -p <<parameters.data-dir>>
+        top \>> <<parameters.data-dir>>/top.txt || true
+        echo "----------------------------------------------------------------------------------------------------"
+        echo "Memory usage information has been stored in <<parameters.data-dir>>"

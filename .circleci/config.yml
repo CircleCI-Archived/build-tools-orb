@@ -2,204 +2,161 @@ version: 2.1
 
 orbs:
   build-tools: circleci/build-tools@dev:alpha
-  circle-compare-url: iynere/compare-url@0.4.5
-  orb-tools: circleci/orb-tools@3.0.0
+  orb-tools: circleci/orb-tools@7.0.0
 
 executors:
-  cibuilds:
-    resource_class: small
-    docker:
-      - image: cibuilds/base
-
-  cli:
-    resource_class: small
-    docker:
-      - image: circleci/circleci-cli
-
-  lint:
-    resource_class: small
-    docker:
-      - image: singapore/lint-condo
+  macos:
+    macos:
+      xcode: "10.1.0"
 
 jobs:
-  lint:
-    executor: lint
-    steps:
-      - checkout
-      - run: yamllint .
-
+  # lint goes here: see workflow
   # validate goes here: see workflow
+  # publish-dev goes here: see workflow
+  # trigger-integration goes here: see workflow
 
-  publish-dev:
-    executor: cli
+  test-orb-commands:
+    executor: macos
     steps:
       - checkout
 
-      - attach_workspace:
-          at: workspace
+      - build-tools/ensure-command:
+          command: brew
 
-      - run:
-          name: publish various dev versions
-          command: |
-            # dev:alpha, for integration testing
-            circleci orb publish workspace/orb.yml circleci/build-tools@dev:alpha --token $CIRCLE_TOKEN
+      - build-tools/script-run:
+          label: set up skeleton filesystem to validate ios-logs command (also test script-run command)
+          script: |
+            #!/bin/bash
 
-            # branch + sha, for transparency
-            circleci orb publish workspace/orb.yml circleci/build-tools@dev:$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7} --token $CIRCLE_TOKEN
+            mkdir -p ~/project/fastlane
+            echo fastfile > ~/project/fastlane/Fastfile
+            echo gymfile > ~/project/fastlane/Gymfile
+            echo appfile > ~/project/fastlane/Appfile
 
-            # sha only, for potential prod promotion
-            circleci orb publish workspace/orb.yml circleci/build-tools@dev:${CIRCLE_SHA1:0:7} --token $CIRCLE_TOKEN
+            mkdir -p ~/project/ccidiag.xcodeproj
+            echo project > ~/project/ccidiag.xcodeproj/project.pbxproj
 
-      - store_artifacts:
-          path: workspace/orb.yml
+      - build-tools/script-run:
+          label: validate file init (& test script-run again)
+          script: |
+            #!/bin/bash
 
-  trigger-integration:
-    executor: cibuilds
-    parameters:
-      tag:
-        type: enum
-        default: "integration"
-        enum: ["integration", master]
-    steps:
-      - checkout
-
-      - add_ssh_keys:
-          fingerprints:
-            - "16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84"
-
-      - run:
-          name: git config
-          command: |
-            git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
-            git config --global user.name "$CIRCLE_USERNAME"
-
-      - circle-compare-url/reconstruct
-
-      - run:
-          name: trigger integration workflow, possible patch / minor / major release
-          command: |
-            CIRCLE_COMPARE_URL=$(cat CIRCLE_COMPARE_URL.txt)
-
-            COMMIT_RANGE=$(echo $CIRCLE_COMPARE_URL | sed 's:^.*/compare/::g')
-
-            echo "Commit range: $COMMIT_RANGE"
-
-            if [[ $(git diff $COMMIT_RANGE --name-status | grep -e "src/commands" -e "src/jobs") ]]; then
-              INTEGRATION_TAG=<<parameters.tag>>-major-$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
-
-            elif [[ $(git diff $COMMIT_RANGE --name-status | grep -e "src/examples" -e "src/executors" -e "src/@orb.yml") ]]; then
-              INTEGRATION_TAG=<<parameters.tag>>-minor-$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
-
-            elif [[ $(git diff $COMMIT_RANGE --name-status | grep -e "config.yml") ]]; then
-              INTEGRATION_TAG=<<parameters.tag>>-patch-$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
-
+            if [ ! -f ~/project/fastlane/Appfile ]; then
+              echo "file init did not succeed"
+              exit 1
             else
-              INTEGRATION_TAG=<<parameters.tag>>-skip-$CIRCLE_BRANCH-${CIRCLE_SHA1:0:7}
+              echo appfile >> ~/project/fastlane/Appfile
             fi
 
-            git tag $INTEGRATION_TAG
-            git push origin $INTEGRATION_TAG
+      # test rest of build-tools commands
+      - build-tools/env-info
+      - build-tools/ios-logs
+      - build-tools/memory
+      - build-tools/test-results
+      - build-tools/store-report
+
+# yaml anchor filters
+integration-dev_filters: &integration-dev_filters
+  branches:
+    ignore: /.*/
+  tags:
+    only: /integration-.*/
+
+integration-master_filters: &integration-master_filters
+  branches:
+    ignore: /.*/
+  tags:
+    only: /master-.*/
+
+prod-deploy_requires: &prod-deploy_requires
+  [test-orb-commands-master, introspect-orbs-master]
 
 workflows:
   lint_pack-validate_publish-dev:
     jobs:
-      - lint
+      - orb-tools/lint
 
       - orb-tools/pack:
-          name: pack-validate
-          workspace-path: orb.yml
-          artifact-path: orb.yml
           requires:
-            - lint
+            - orb-tools/lint
 
-      - publish-dev:
+      - orb-tools/publish-dev:
           context: orb-publishing
+          orb-name: circleci/build-tools
           requires:
-            - pack-validate
+            - orb-tools/pack
 
-      - trigger-integration:
+      - orb-tools/trigger-integration-workflow:
           name: trigger-integration-dev
-          context: orb-publishing
-          requires: [publish-dev]
+          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
+          requires:
+            - orb-tools/publish-dev
           filters:
             branches:
               ignore: master
 
-      - trigger-integration:
+      - orb-tools/trigger-integration-workflow:
           name: trigger-integration-master
-          context: orb-publishing
+          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
           tag: master
-          requires: [publish-dev]
+          requires:
+            - orb-tools/publish-dev
           filters:
             branches:
               only: master
 
-# commands:
+  integration-tests_prod-deploy:
+    jobs:
+      # triggered by non-master branch commits
+      - test-orb-commands:
+          name: test-orb-commands-dev
+          filters: *integration-dev_filters
 
-# executors:
-#   test:
-#     docker:
-#       - image: circleci/ruby:2.4.1
-#     working_directory: ~/.circleci/temp/
+      - build-tools/introspect-orbs:
+          name: introspect-orbs-dev
+          filters: *integration-dev_filters
 
-# jobs:
-#   test-script-run:
-#     executor: test
-#     steps:
-#       - build-tools/script-run:
-#           output-file: "./myfile.txt"
-#           script: |
-#             #!/usr/local/bin/ruby
-#             puts "Orb OK"
-#       - run:
-#           name: Check to be sure the script did what was expected
-#           command: |
-#             value=$( cat ./myfile.txt )
-#             if [ "$value" == "Orb OK" ] ; then
-#               echo 'Script worked as expected. OK.'
-#               exit 0
-#             fi
-#             echo 'Script did not work as expected.'
-#             exit 1
-#   test-extract-inline-orb:
-#     parameters:
-#       source:
-#         type: string
-#         default: "./.circleci/config.yml"
-#       orb:
-#         type: string
-#       file:
-#         type: string
-#     executor: test
-#     steps:
-#       - checkout
-#       - build-tools/extract-inline-orb:
-#           source: << parameters.source >>
-#           orb: << parameters.orb >>
-#           file: << parameters.file >>
+      # triggered by master branch commits
+      - test-orb-commands:
+          name: test-orb-commands-master
+          filters: *integration-master_filters
 
-#   # extract-and-publish-build-tools:
-#   #   executor: test
-#   #   steps:
-#   #     - checkout
-#   #     # - extract-inline-orb:
-#   #     #     file: ./.circleci/config.yml
-# workflows:
-#   btd:
-#     jobs:
-#       - build-tools/diagnostic:
-#           name: diagnostic
-#       - test-script-run
-#       - test-extract-inline-orb:
-#           file: "extract-inline-orb/build-tools.yml"
-#           orb: "build-tools"
-#       - build-tools/introspect-orbs
-#       - orb-tools/publish:
-#           checkout: false
-#           attach-workspace: true
-#           orb-path: "extract-inline-orb/build-tools.yml"
-#           orb-ref: "sandbox/build-tools@dev:${CIRCLE_BRANCH}"
-#           publish-token-variable: "$CIRCLECI_API_TOKEN"
-#           requires:
-#             - test-extract-inline-orb
+      - build-tools/introspect-orbs:
+          name: introspect-orbs-master
+          filters: *integration-master_filters
 
+      # patch, minor, or major publishing
+      - orb-tools/dev-promote-prod:
+          name: dev-promote-patch
+          context: orb-publishing
+          orb-name: circleci/build-tools
+          requires: *prod-deploy_requires
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /master-patch.*/
+
+      - orb-tools/dev-promote-prod:
+          name: dev-promote-minor
+          release: minor
+          context: orb-publishing
+          orb-name: circleci/build-tools
+          requires: *prod-deploy_requires
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /master-minor.*/
+
+      - orb-tools/dev-promote-prod:
+          name: dev-promote-major
+          release: major
+          context: orb-publishing
+          orb-name: circleci/build-tools
+          requires: *prod-deploy_requires
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /master-major.*/

@@ -1,0 +1,46 @@
+description: >
+  Use the orb's env-info command, with custom parameters,
+  to debug a Node.js project
+
+usage:
+  version: 2.1
+
+  orbs:
+    diagnostic-orb: circleci/diagnostic-orb@1.0.0
+
+  executors:
+    node:
+      docker:
+        - image: circleci/node
+
+  jobs:
+    build:
+      executor: node
+      steps:
+        - checkout
+        # rest of your build steps
+
+    deploy:
+      executor: node
+      steps:
+        - checkout
+        # rest of your deploy steps
+
+  workflows:
+    build-and-deploy:
+      jobs:
+        - build:
+            post-steps:
+              - diagnostic-orb/env-info:
+                  data-dir: diagnostic-report/env-info
+
+              # data-dir can be any directory; however, it's important to make sure that
+              # directories passed as parameters to any debugging commands are
+              # subdirectories of the directory passed to the final store-report command
+
+              - diagnostic-orb/store-report:
+                  data-dir: diagnostic-report
+
+        - deploy:
+            requires:
+              - build

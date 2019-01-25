@@ -1,0 +1,46 @@
+description: >
+  Save information about the job enviroment, to be stored as artifacts and inspected later
+
+parameters:
+  data-dir:
+    type: string
+    default: ~/.ccidiag/env-info
+    description: >
+      Directory in which to output job environment information (will be created if necessary)
+
+steps:
+  - run:
+      name: CircleCI diagnostic report (env-info)
+      when: always
+      command: |
+        echo "----------------------------------------------------------------------------------------------------"
+        echo "This will run through a set of commands, dumping their output as a file to be uploaded as an artifact"
+        echo "If the command doesn't exist the file will be empty, and CircleCI will ignore it during the upload"
+        echo "Can be used to discover enviromental information and installed packages"
+        echo "----------------------------------------------------------------------------------------------------"
+        echo "Working directory is: $(pwd)"
+        echo "Output will be stored in: <<parameters.data-dir>> (creating it if it does not exist...)"
+        echo "----------------------------------------------------------------------------------------------------"
+        mkdir -p <<parameters.data-dir>>
+        echo "System information:" > <<parameters.data-dir>>/uname_arch.log
+        echo "uname -a:" $(uname -a) > <<parameters.data-dir>>/uname_arch.log
+        echo "arch: " $(arch) > <<parameters.data-dir>>/uname_arch.log
+        echo "Build information:" > <<parameters.data-dir>>/build_info.log
+        echo "TRIGGERER: ${CIRCLE_USERNAME}" > <<parameters.data-dir>>/build_info.log
+        echo "BUILD_NUMBER: ${CIRCLE_BUILD_NUM}" > <<parameters.data-dir>>/build_info.log
+        echo "BUILD_URL: ${CIRCLE_BUILD_URL}" > <<parameters.data-dir>>/build_info.log
+        echo "BRANCH: ${CIRCLE_BRANCH}" > <<parameters.data-dir>>/build_info.log
+        echo "RUNNING JOB: ${CIRCLE_JOB}" > <<parameters.data-dir>>/build_info.log
+        echo "JOB PARALLELISM: ${CIRCLE_NODE_TOTAL}" > <<parameters.data-dir>>/build_info.log
+        echo "CIRCLE_REPOSITORY_URL: ${CIRCLE_REPOSITORY_URL}" > <<parameters.data-dir>>/build_info.log
+        cat /proc/cpuinfo > <<parameters.data-dir>>/proc_cpuinfo.log || true
+        dpkg -l > <<parameters.data-dir>>/dpkg.log || true
+        yarn list > <<parameters.data-dir>>/yarn.log || true
+        brew list --versions > <<parameters.data-dir>>/brew.log || true
+        yarn global list > <<parameters.data-dir>>/yarn-global.log || true
+        gem query --local > <<parameters.data-dir>>/gem.log || true
+        npm --version > <<parameters.data-dir>>/npm-version.log || true
+        npm ls --global > <<parameters.data-dir>>/npm-global.log || true
+        npm ls > <<parameters.data-dir>>/npm.log || true
+        echo "----------------------------------------------------------------------------------------------------"
+        echo "Env diagnostic data has been stored in <<parameters.data-dir>>"
