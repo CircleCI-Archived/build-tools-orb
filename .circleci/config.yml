@@ -35,13 +35,13 @@ jobs:
             mkdir -p ~/project/ccidiag.xcodeproj
             echo project > ~/project/ccidiag.xcodeproj/project.pbxproj
 
-      # test with one that already exists
-      - build-tools/init-file:
-          file: ~/project/fastlane/Fastfile
-
-      # & one that doesn't
+      # test with one that doesn't exist
       - build-tools/init-file:
           file: ~/project/fastlane/Appfile
+
+      # & with one that does
+      - build-tools/init-file:
+          file: ~/project/fastlane/Fastfile
 
       - build-tools/script-run:
           label: validate file init (& test script-run again)
