@@ -31,17 +31,10 @@ jobs:
             mkdir -p ~/project/fastlane
             echo fastfile > ~/project/fastlane/Fastfile
             echo gymfile > ~/project/fastlane/Gymfile
+            echo appfile > ~/project/fastlane/Appfile
 
             mkdir -p ~/project/ccidiag.xcodeproj
             echo project > ~/project/ccidiag.xcodeproj/project.pbxproj
-
-      # test with one that doesn't exist
-      - build-tools/init-file:
-          file: ~/project/fastlane/Appfile
-
-      # & with one that does exist
-      - build-tools/init-file:
-          file: ~/project/fastlane/Fastfile
 
       - build-tools/script-run:
           label: validate file init (& test script-run again)
