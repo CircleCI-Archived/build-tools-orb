@@ -62,6 +62,22 @@ jobs:
       - build-tools/test-results
       - build-tools/store-report
 
+# yaml anchor filters
+integration-dev_filters: &integration-dev_filters
+  branches:
+    ignore: /.*/
+  tags:
+    only: /integration-.*/
+
+integration-master_filters: &integration-master_filters
+  branches:
+    ignore: /.*/
+  tags:
+    only: /master-.*/
+
+prod-deploy_requires: &prod-deploy_requires
+  [test-orb-commands-master, introspect-orbs-master]
+
 workflows:
   lint_pack-validate_publish-dev:
     jobs:
@@ -151,19 +167,3 @@ workflows:
               ignore: /.*/
             tags:
               only: /master-major.*/
-
-# yaml anchor filters
-integration-dev_filters: &integration-dev_filters
-  branches:
-    ignore: /.*/
-  tags:
-    only: /integration-.*/
-
-integration-master_filters: &integration-master_filters
-  branches:
-    ignore: /.*/
-  tags:
-    only: /master-.*/
-
-prod-deploy_requires: &prod-deploy_requires
-  [test-orb-commands-master, introspect-orbs-master]
