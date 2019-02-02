@@ -4,10 +4,42 @@ orbs:
   build-tools: circleci/build-tools@dev:alpha
   orb-tools: circleci/orb-tools@7.3.0
 
-executors:
-  macos:
-    macos:
-      xcode: "10.1.0"
+commands:
+  filtered-run-tests_only-branch:
+    steps:
+      - build-tools/run-filtered:
+          only-branch: /filtered-run-tests_only-branch.*/
+          steps:
+            - run:
+                name: should run
+                command: echo "testing"
+
+  filtered-run-tests_ignore-branch:
+    steps:
+      - build-tools/run-filtered:
+          ignore-branch: /filtered-run-tests_ignore-branch.*/
+          steps:
+            - run:
+                name: shouldn't run
+                command: echo "testing"
+
+  filtered-run-tests_only-tag:
+    steps:
+      - build-tools/run-filtered:
+          only-tag: /filtered-run-tests_only-tag.*/
+          steps:
+            - run:
+                name: should run
+                command: echo "testing"
+
+  filtered-run-tests_ignore-tag:
+    steps:
+      - build-tools/run-filtered:
+          ignore-tag: /filtered-run-tests_ignore-tag.*/
+          steps:
+            - run:
+                name: shouldn't run
+                command: echo "testing"
 
 jobs:
   filtered-run-tests:
@@ -211,12 +243,16 @@ workflows:
           filters:
             branches:
               only: filtered-run-tests_only-branch-dev
+          post-steps:
+            - filtered-run-tests_only-branch
 
       - filtered-run-tests:
           name: filtered-run-tests_ignore-branch-dev
           filters:
             branches:
               only: filtered-run-tests_ignore-branch-dev
+          post-steps:
+            - filtered-run-tests_ignore-branch
 
       - filtered-run-tests:
           name: filtered-run-tests_only-tag-dev
@@ -225,6 +261,8 @@ workflows:
               ignore: /.*/
             tags:
               only: filtered-run-tests_only-tag-dev
+          post-steps:
+            - filtered-run-tests_only-tag
 
       - filtered-run-tests:
           name: filtered-run-tests_ignore-tag-dev
@@ -233,6 +271,8 @@ workflows:
               ignore: /.*/
             tags:
               only: filtered-run-tests_ignore-tag-dev
+          post-steps:
+            - filtered-run-tests_ignore-tag
 
       # triggered by master branch commits
       - test-orb-commands:
@@ -242,6 +282,34 @@ workflows:
       - build-tools/introspect-orbs:
           name: introspect-orbs-master
           filters: *integration-master_filters
+
+      - filtered-run-tests:
+          name: filtered-run-tests_only-branch-master
+          filters:
+            branches:
+              only: filtered-run-tests_only-branch-master
+
+      - filtered-run-tests:
+          name: filtered-run-tests_ignore-branch-master
+          filters:
+            branches:
+              only: filtered-run-tests_ignore-branch-master
+
+      - filtered-run-tests:
+          name: filtered-run-tests_only-tag-master
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: filtered-run-tests_only-tag-master
+
+      - filtered-run-tests:
+          name: filtered-run-tests_ignore-tag-master
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: filtered-run-tests_ignore-tag-master
 
       # patch, minor, or major publishing
       - orb-tools/dev-promote-prod:
