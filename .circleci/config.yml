@@ -209,9 +209,9 @@ workflows:
           name: introspect-orbs-dev
           filters: *integration-dev_filters
 
-      - trigger-filtered-run-test-jobs:
-          name: trigger-filtered-run-test-jobs-dev
-          filters: *integration-dev_filters
+      # - trigger-filtered-run-test-jobs:
+      #     name: trigger-filtered-run-test-jobs-dev
+      #     filters: *integration-dev_filters
 
       # triggered by master branch commits
       - test-orb-commands:
@@ -222,9 +222,9 @@ workflows:
           name: introspect-orbs-master
           filters: *integration-master_filters
 
-      - trigger-filtered-run-test-jobs:
-          name: trigger-filtered-run-test-jobs-master
-          filters: *integration-master_filters
+      # - trigger-filtered-run-test-jobs:
+      #     name: trigger-filtered-run-test-jobs-master
+      #     filters: *integration-master_filters
 
       # patch, minor, or major publishing
       - orb-tools/dev-promote-prod:
