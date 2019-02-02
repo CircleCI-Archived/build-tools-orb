@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   build-tools: circleci/build-tools@dev:alpha
-  orb-tools: circleci/orb-tools@7.0.0
+  orb-tools: circleci/orb-tools@7.3.0
 
 executors:
   macos:
@@ -14,6 +14,9 @@ jobs:
   # validate goes here: see workflow
   # publish-dev goes here: see workflow
   # trigger-integration goes here: see workflow
+
+  trigger-test-filtered-jobs:
+    executor:
 
   test-orb-commands:
     executor: macos
