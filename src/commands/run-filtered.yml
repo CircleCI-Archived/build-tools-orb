@@ -1,0 +1,106 @@
+description: >
+  Conditionally run a step, or a series of steps, via paramaterized
+  branch and/or tag filters. Provide either exact branch/tag names or
+  regular expressions. This command *must* be run as the last command in
+  a job (given that you may pass multiple steps to it via the `steps`
+  parameter, however, it is fairly adaptable): if commands or steps are
+  placed after this command within a particular job in your config.yml,
+  they *will not* run. Designed to mirror job-level branch/tag filters:
+  https://circleci.com/docs/2.0/workflows/#using-regular-expressions-to-filter-tags-and-branches
+
+parameters:
+  only-branch:
+    type: string
+    default: /.*/
+    description: >
+      Exact name or regular expression specifying branch(es) to accept.
+      Defaults to a regular expression accepting all branches, following
+      the default execution pattern for job-level branch filtering:
+      https://circleci.com/docs/2.0/workflows/#branch-level-job-execution
+
+  ignore-branch:
+    type: string
+    default: //
+    description: >
+      Exact name or regular expression specifying branch(es) to ignore.
+      Defaults to a regular expression ignoring no branches, following
+      the default execution pattern for job-level branch filtering:
+      https://circleci.com/docs/2.0/workflows/#branch-level-job-execution
+
+  only-tag:
+    type: string
+    default: //
+    description: >
+      Exact name or regular expression specifying tag(s) to accept.
+      Defaults to a regular expression accepting no tags, following
+      the default execution pattern for job-level tag filtering:
+      https://circleci.com/docs/2.0/workflows/#executing-workflows-for-a-git-tag
+
+  ignore-tag:
+    type: string
+    default: /.*/
+    description: >
+      Exact name or regular expression specifying tag(s) to ignore.
+      Defaults to a regular expression ignoring all tags, following
+      the default execution pattern for job-level tag filtering:
+      https://circleci.com/docs/2.0/workflows/#executing-workflows-for-a-git-tag
+
+  steps:
+    type: steps
+    default: []
+    description: >
+      Steps that you'd like to run, if your provided conditions are met
+
+steps:
+  - run:
+      name: evaluate branch/tag filters
+      command: |
+        BRANCH_ONLY="<<parameters.only-branch>>"
+        # check if we got a regex or an exact name
+        if [[ "${BRANCH_ONLY:0:1}" = "/" ]]; then # regex
+          if [[ ! "$CIRCLE_BRANCH" =~ "$BRANCH_ONLY" ]]; then
+            circleci step halt
+          fi
+        else # exact name
+          if [[ "$CIRCLE_BRANCH" != "$BRANCH_ONLY" ]]; then
+            circleci step halt
+          fi
+        fi
+
+        BRANCH_IGNORE="<<parameters.ignore-branch>>"
+        # check if we got a regex or an exact name
+        if [[ "${BRANCH_IGNORE:0:1}" = "/" ]]; then # regex
+          if [[ "$CIRCLE_BRANCH" =~ "$BRANCH_ONLY" ]]; then
+            circleci step halt
+          fi
+        else # exact name
+          if [[ "$CIRCLE_BRANCH" == "$BRANCH_IGNORE" ]]; then
+            circleci step halt
+          fi
+        fi
+
+        TAG_ONLY="<<parameters.only-tag>>"
+        # check if we got "", a regex, or an exact name
+        if [[ "${TAG_ONLY:0:1}" = "/" ]]; then # regex
+          if [[ ! "$CIRCLE_TAG" =~ "$TAG_ONLY" ]]; then
+            circleci step halt
+          fi
+        else # exact name
+          if [[ "$CIRCLE_TAG" != "$TAG_ONLY" ]]; then
+            circleci step halt
+          fi
+        fi
+
+        TAG_IGNORE="<<parameters.ignore-tag>>"
+        # check if we got "", a regex, or an exact name
+        if [[ "${TAG_IGNORE:0:1}" = "/" ]]; then # regex
+          if [[ "$CIRCLE_TAG" =~ "$TAG_ONLY" ]]; then
+            circleci step halt
+          fi
+        else  # exact name
+          if [[ "$CIRCLE_TAG" == "$TAG_IGNORE" ]]; then
+            circleci step halt
+          fi
+        fi
+
+  - steps: <<parameters.steps>>
