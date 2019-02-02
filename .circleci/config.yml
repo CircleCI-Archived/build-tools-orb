@@ -20,15 +20,15 @@ jobs:
   #   steps:
   #     - checkout
 
-  #     - add_ssh_keys:
-  #         fingerprints:
-  #           - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
+      # - add_ssh_keys:
+      #     fingerprints:
+      #       - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
 
-  #     - run:
-  #         name: git config
-  #         command: |
-  #           git config --global user.name "$CIRCLE_USERNAME"
-  #           git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
+      # - run:
+      #     name: git config
+      #     command: |
+      #       git config --global user.name "$CIRCLE_USERNAME"
+      #       git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
 
   #     - run:
   #         name: push special filtered-run-tests branch
@@ -122,8 +122,25 @@ workflows:
       - orb-tools/publish-dev:
           context: orb-publishing
           orb-name: circleci/build-tools
-          requires:
-            - orb-tools/pack
+          requires: [orb-tools/pack]
+          post-steps:
+            - add_ssh_keys:
+                fingerprints:
+                  - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
+
+            - run:
+                name: git config
+                command: |
+                  git config --global user.name "$CIRCLE_USERNAME"
+                  git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
+
+            - run:
+                name: cleanup any existing tags, to prep for next job
+                command: |
+                  git tag -d $(git tag -l)
+                  git fetch
+                  git push origin --delete $(git tag -l) # Pushing once should be faster than multiple times
+                  git tag -d $(git tag -l)
 
       - orb-tools/trigger-integration-workflow:
           name: trigger-integration-dev
