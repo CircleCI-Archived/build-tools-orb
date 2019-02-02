@@ -59,10 +59,12 @@ steps:
         # check if we got a regex or an exact name
         if [[ "${BRANCH_ONLY:0:1}" = "/" ]]; then # regex
           if [[ ! "$CIRCLE_BRANCH" =~ "$BRANCH_ONLY" ]]; then
+            echo "branch doesn't match regex; halting"
             circleci step halt
           fi
         else # exact name
           if [[ "$CIRCLE_BRANCH" != "$BRANCH_ONLY" ]]; then
+            echo "branch doesn't match exact name; halting"
             circleci step halt
           fi
         fi
@@ -71,10 +73,12 @@ steps:
         # check if we got a regex or an exact name
         if [[ "${BRANCH_IGNORE:0:1}" = "/" ]]; then # regex
           if [[ "$CIRCLE_BRANCH" =~ "$BRANCH_ONLY" ]]; then
+            echo "branch matches ignore regex; halting"
             circleci step halt
           fi
         else # exact name
           if [[ "$CIRCLE_BRANCH" == "$BRANCH_IGNORE" ]]; then
+            echo "branch matches exact ignore name; halting"
             circleci step halt
           fi
         fi
@@ -83,10 +87,12 @@ steps:
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_ONLY:0:1}" = "/" ]]; then # regex
           if [[ ! "$CIRCLE_TAG" =~ "$TAG_ONLY" ]]; then
+            echo "tag doesn't match regex; halting"
             circleci step halt
           fi
         else # exact name
           if [[ "$CIRCLE_TAG" != "$TAG_ONLY" ]]; then
+            echo "tag doesn't match exact name; halting"
             circleci step halt
           fi
         fi
@@ -95,10 +101,12 @@ steps:
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_IGNORE:0:1}" = "/" ]]; then # regex
           if [[ "$CIRCLE_TAG" =~ "$TAG_ONLY" ]]; then
+            echo "tag matches ignore regex; halting"
             circleci step halt
           fi
         else  # exact name
           if [[ "$CIRCLE_TAG" == "$TAG_IGNORE" ]]; then
+            echo "tag matches exact ignore name; halting"
             circleci step halt
           fi
         fi
