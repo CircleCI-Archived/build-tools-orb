@@ -212,6 +212,28 @@ workflows:
             branches:
               only: filtered-run-tests_only-branch-dev
 
+      - filtered-run-tests:
+          name: filtered-run-tests_ignore-branch-dev
+          filters:
+            branches:
+              only: filtered-run-tests_ignore-branch-dev
+
+      - filtered-run-tests:
+          name: filtered-run-tests_only-tag-dev
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: filtered-run-tests_only-tag-dev
+
+      - filtered-run-tests:
+          name: filtered-run-tests_ignore-tag-dev
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: filtered-run-tests_ignore-tag-dev
+
       # triggered by master branch commits
       - test-orb-commands:
           name: test-orb-commands-master
