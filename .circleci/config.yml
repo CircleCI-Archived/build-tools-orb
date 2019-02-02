@@ -10,6 +10,11 @@ executors:
       xcode: "10.1.0"
 
 jobs:
+  filtered-run-tests:
+    executor: build-tools/ci-base
+    steps:
+      - checkout
+
   test-orb-commands:
     executor: build-tools/macos
     steps:
@@ -102,6 +107,21 @@ workflows:
                   git push origin --delete $(git tag -l) # Pushing once should be faster than multiple times
                   git tag -d $(git tag -l)
 
+            - run:
+                name: cleanup filtered-run-tests branches, too
+                command: |
+                  git branch -d filtered-run-tests_only-branch-dev
+                  git push origin --delete filtered-run-tests_only-branch-dev
+
+                  git branch -d filtered-run-tests_only-branch-master
+                  git push origin --delete filtered-run-tests_only-branch-master
+
+                  git branch -d filtered-run-tests_ignore-branch-dev
+                  git push origin --delete filtered-run-tests_ignore-branch-dev
+
+                  git branch -d filtered-run-tests_ignore-branch-master
+                  git push origin --delete filtered-run-tests_ignore-branch-master
+
       - orb-tools/trigger-integration-workflow:
           name: trigger-integration-dev
           ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
@@ -111,29 +131,29 @@ workflows:
                 name: push only-branch branch
                 command: |
                   MAIN_BRANCH="$CIRCLE_BRANCH"
-                  git checkout -b filtered-run-tests_only-branch
-                  git push origin filtered-run-tests_only-branch
+                  git checkout -b filtered-run-tests_only-branch-dev
+                  git push origin filtered-run-tests_only-branch-dev
                   git checkout "$MAIN_BRANCH"
 
             - run:
                 name: push ignore-branch branch
                 command: |
                   MAIN_BRANCH="$CIRCLE_BRANCH"
-                  git checkout -b filtered-run-tests_ignore-branch
-                  git push origin filtered-run-tests_ignore-branch
+                  git checkout -b filtered-run-tests_ignore-branch-dev
+                  git push origin filtered-run-tests_ignore-branch-dev
                   git checkout "$MAIN_BRANCH"
 
             - run:
                 name: push only-tag tag
                 command: |
-                  git tag filtered-run-tests_only-tag
-                  git push origin filtered-run-tests_only-tag
+                  git tag filtered-run-tests_only-tag-dev
+                  git push origin filtered-run-tests_only-tag-dev
 
             - run:
                 name: push ignore-tag tag
                 command: |
-                  git tag filtered-run-tests_ignore-tag
-                  git push origin filtered-run-tests_ignore-tag
+                  git tag filtered-run-tests_ignore-tag-dev
+                  git push origin filtered-run-tests_ignore-tag-dev
           filters:
             branches:
               ignore: master
@@ -148,29 +168,29 @@ workflows:
                 name: push only-branch branch
                 command: |
                   MAIN_BRANCH="$CIRCLE_BRANCH"
-                  git checkout -b filtered-run-tests_only-branch
-                  git push origin filtered-run-tests_only-branch
+                  git checkout -b filtered-run-tests_only-branch-master
+                  git push origin filtered-run-tests_only-branch-master
                   git checkout "$MAIN_BRANCH"
 
             - run:
                 name: push ignore-branch branch
                 command: |
                   MAIN_BRANCH="$CIRCLE_BRANCH"
-                  git checkout -b filtered-run-tests_ignore-branch
-                  git push origin filtered-run-tests_ignore-branch
+                  git checkout -b filtered-run-tests_ignore-branch-master
+                  git push origin filtered-run-tests_ignore-branch-master
                   git checkout "$MAIN_BRANCH"
 
             - run:
                 name: push only-tag tag
                 command: |
-                  git tag filtered-run-tests_only-tag
-                  git push origin filtered-run-tests_only-tag
+                  git tag filtered-run-tests_only-tag-master
+                  git push origin filtered-run-tests_only-tag-master
 
             - run:
                 name: push ignore-tag tag
                 command: |
-                  git tag filtered-run-tests_ignore-tag
-                  git push origin filtered-run-tests_ignore-tag
+                  git tag filtered-run-tests_ignore-tag-master
+                  git push origin filtered-run-tests_ignore-tag-master
           filters:
             branches:
               only: master
@@ -185,6 +205,12 @@ workflows:
       - build-tools/introspect-orbs:
           name: introspect-orbs-dev
           filters: *integration-dev_filters
+
+      - filtered-run-tests:
+          name: filtered-run-tests_only-branch-dev
+          filters:
+            branches:
+              only: filtered-run-tests_only-branch-dev
 
       # triggered by master branch commits
       - test-orb-commands:
