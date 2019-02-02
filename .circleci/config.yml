@@ -113,7 +113,7 @@ workflows:
       - orb-tools/lint:
           filters:
             branches:
-              ignore: /filtered-run-tests*/
+              ignore: /filtered-run-tests.*/
 
       - orb-tools/pack:
           requires:
