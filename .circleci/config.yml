@@ -36,48 +36,20 @@ jobs:
   #           git checkout -b filtered-run-tests
   #           git push origin filtered-run-tests
 
-  trigger-filtered-run-test-jobs:
-    executor: build-tools/ci-base
-    steps:
-      - checkout
+  # trigger-filtered-run-test-jobs:
+  #   executor: build-tools/ci-base
+  #   steps:
+  #     - checkout
 
-      - add_ssh_keys:
-          fingerprints:
-            - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
+  #     - add_ssh_keys:
+  #         fingerprints:
+  #           - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
 
-      - run:
-          name: git config
-          command: |
-            git config --global user.name "$CIRCLE_USERNAME"
-            git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
-
-      - run:
-          name: push only-branch branch
-          command: |
-            MAIN_BRANCH="$CIRCLE_BRANCH"
-            git checkout -b filtered-run-tests_only-branch
-            git push origin filtered-run-tests_only-branch
-            git checkout "$MAIN_BRANCH"
-
-      - run:
-          name: push ignore-branch branch
-          command: |
-            MAIN_BRANCH="$CIRCLE_BRANCH"
-            git checkout -b filtered-run-tests_ignore-branch
-            git push origin filtered-run-tests_ignore-branch
-            git checkout "$MAIN_BRANCH"
-
-      - run:
-          name: push only-tag tag
-          command: |
-            git tag filtered-run-tests_only-tag
-            git push origin filtered-run-tests_only-tag
-
-      - run:
-          name: push ignore-tag tag
-          command: |
-            git tag filtered-run-tests_ignore-tag
-            git push origin filtered-run-tests_ignore-tag
+  #     - run:
+  #         name: git config
+  #         command: |
+  #           git config --global user.name "$CIRCLE_USERNAME"
+  #           git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
 
   test-orb-commands:
     executor: build-tools/macos
@@ -156,8 +128,35 @@ workflows:
       - orb-tools/trigger-integration-workflow:
           name: trigger-integration-dev
           ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
-          requires:
-            - orb-tools/publish-dev
+          requires: [orb-tools/publish-dev]
+          post-steps:
+            - run:
+                name: push only-branch branch
+                command: |
+                  MAIN_BRANCH="$CIRCLE_BRANCH"
+                  git checkout -b filtered-run-tests_only-branch
+                  git push origin filtered-run-tests_only-branch
+                  git checkout "$MAIN_BRANCH"
+
+            - run:
+                name: push ignore-branch branch
+                command: |
+                  MAIN_BRANCH="$CIRCLE_BRANCH"
+                  git checkout -b filtered-run-tests_ignore-branch
+                  git push origin filtered-run-tests_ignore-branch
+                  git checkout "$MAIN_BRANCH"
+
+            - run:
+                name: push only-tag tag
+                command: |
+                  git tag filtered-run-tests_only-tag
+                  git push origin filtered-run-tests_only-tag
+
+            - run:
+                name: push ignore-tag tag
+                command: |
+                  git tag filtered-run-tests_ignore-tag
+                  git push origin filtered-run-tests_ignore-tag
           filters:
             branches:
               ignore: master
@@ -166,8 +165,35 @@ workflows:
           name: trigger-integration-master
           ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
           tag: master
-          requires:
-            - orb-tools/publish-dev
+          requires: [orb-tools/publish-dev]
+          post-steps:
+            - run:
+                name: push only-branch branch
+                command: |
+                  MAIN_BRANCH="$CIRCLE_BRANCH"
+                  git checkout -b filtered-run-tests_only-branch
+                  git push origin filtered-run-tests_only-branch
+                  git checkout "$MAIN_BRANCH"
+
+            - run:
+                name: push ignore-branch branch
+                command: |
+                  MAIN_BRANCH="$CIRCLE_BRANCH"
+                  git checkout -b filtered-run-tests_ignore-branch
+                  git push origin filtered-run-tests_ignore-branch
+                  git checkout "$MAIN_BRANCH"
+
+            - run:
+                name: push only-tag tag
+                command: |
+                  git tag filtered-run-tests_only-tag
+                  git push origin filtered-run-tests_only-tag
+
+            - run:
+                name: push ignore-tag tag
+                command: |
+                  git tag filtered-run-tests_ignore-tag
+                  git push origin filtered-run-tests_ignore-tag
           filters:
             branches:
               only: master
