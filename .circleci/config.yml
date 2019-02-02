@@ -80,11 +80,10 @@ workflows:
 
       - orb-tools/publish-dev:
           context: orb-publishing
+          checkout: true
           orb-name: circleci/build-tools
           requires: [orb-tools/pack]
           post-steps:
-            - checkout
-
             - add_ssh_keys:
                 fingerprints:
                   - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
