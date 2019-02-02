@@ -10,47 +10,6 @@ executors:
       xcode: "10.1.0"
 
 jobs:
-  # lint goes here: see workflow
-  # validate goes here: see workflow
-  # publish-dev goes here: see workflow
-  # trigger-integration goes here: see workflow
-
-  # trigger-filtered-run-tests-workflow:
-  #   executor: build-tools/ci-base
-  #   steps:
-  #     - checkout
-
-      # - add_ssh_keys:
-      #     fingerprints:
-      #       - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
-
-      # - run:
-      #     name: git config
-      #     command: |
-      #       git config --global user.name "$CIRCLE_USERNAME"
-      #       git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
-
-  #     - run:
-  #         name: push special filtered-run-tests branch
-  #         command: |
-  #           git checkout -b filtered-run-tests
-  #           git push origin filtered-run-tests
-
-  # trigger-filtered-run-test-jobs:
-  #   executor: build-tools/ci-base
-  #   steps:
-  #     - checkout
-
-  #     - add_ssh_keys:
-  #         fingerprints:
-  #           - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
-
-  #     - run:
-  #         name: git config
-  #         command: |
-  #           git config --global user.name "$CIRCLE_USERNAME"
-  #           git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
-
   test-orb-commands:
     executor: build-tools/macos
     steps:
@@ -124,6 +83,8 @@ workflows:
           orb-name: circleci/build-tools
           requires: [orb-tools/pack]
           post-steps:
+            - checkout
+
             - add_ssh_keys:
                 fingerprints:
                   - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
@@ -226,10 +187,6 @@ workflows:
           name: introspect-orbs-dev
           filters: *integration-dev_filters
 
-      # - trigger-filtered-run-test-jobs:
-      #     name: trigger-filtered-run-test-jobs-dev
-      #     filters: *integration-dev_filters
-
       # triggered by master branch commits
       - test-orb-commands:
           name: test-orb-commands-master
@@ -238,10 +195,6 @@ workflows:
       - build-tools/introspect-orbs:
           name: introspect-orbs-master
           filters: *integration-master_filters
-
-      # - trigger-filtered-run-test-jobs:
-      #     name: trigger-filtered-run-test-jobs-master
-      #     filters: *integration-master_filters
 
       # patch, minor, or major publishing
       - orb-tools/dev-promote-prod:
