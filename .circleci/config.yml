@@ -139,8 +139,9 @@ workflows:
   lint_pack-validate_publish-dev:
     jobs:
       - orb-tools/lint:
-          branches:
-            ignore: /filtered-run-tests*/
+          filters:
+            branches:
+              ignore: /filtered-run-tests*/
 
       - orb-tools/pack:
           requires:
