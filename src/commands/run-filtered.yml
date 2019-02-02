@@ -59,6 +59,7 @@ steps:
         # check if we got a regex or an exact name
         if [[ "${BRANCH_ONLY:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES1="${BRANCH_ONLY:1:${#BRANCH_ONLY}-2}"
+          echo $STRIP_SLASHES1
 
           if [[ ! "$CIRCLE_BRANCH" =~ "$STRIP_SLASHES1" ]]; then
             echo "branch doesn't match regex; halting"
@@ -75,6 +76,7 @@ steps:
         # check if we got a regex or an exact name
         if [[ "${BRANCH_IGNORE:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES2="${BRANCH_IGNORE:1:${#BRANCH_IGNORE}-2}"
+          echo $STRIP_SLASHES2
 
           if [[ "$CIRCLE_BRANCH" =~ "$STRIP_SLASHES2" ]]; then
             echo "branch matches ignore regex; halting"
@@ -91,6 +93,7 @@ steps:
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_ONLY:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES3="${TAG_ONLY:1:${#TAG_ONLY}-2}"
+          echo $STRIP_SLASHES3
 
           if [[ ! "$CIRCLE_TAG" =~ "$STRIP_SLASHES3" ]]; then
             echo "tag doesn't match regex; halting"
@@ -107,6 +110,7 @@ steps:
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_IGNORE:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES4="${TAG_IGNORE:1:${#TAG_IGNORE}-2}"
+          echo $STRIP_SLASHES4
 
           if [[ "$CIRCLE_TAG" =~ "$STRIP_SLASHES4" ]]; then
             echo "tag matches ignore regex; halting"
