@@ -15,11 +15,72 @@ jobs:
   # publish-dev goes here: see workflow
   # trigger-integration goes here: see workflow
 
-  # trigger-test-filtered-jobs:
-  #   executor:
+  # trigger-filtered-run-tests-workflow:
+  #   executor: build-tools/ci-base
+  #   steps:
+  #     - checkout
+
+  #     - add_ssh_keys:
+  #         fingerprints:
+  #           - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
+
+  #     - run:
+  #         name: git config
+  #         command: |
+  #           git config --global user.name "$CIRCLE_USERNAME"
+  #           git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
+
+  #     - run:
+  #         name: push special filtered-run-tests branch
+  #         command: |
+  #           git checkout -b filtered-run-tests
+  #           git push origin filtered-run-tests
+
+  trigger-filtered-run-test-jobs:
+    executor: build-tools/ci-base
+    steps:
+      - checkout
+
+      - add_ssh_keys:
+          fingerprints:
+            - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
+
+      - run:
+          name: git config
+          command: |
+            git config --global user.name "$CIRCLE_USERNAME"
+            git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
+
+      - run:
+          name: push only-branch branch
+          command: |
+            MAIN_BRANCH="$CIRCLE_BRANCH"
+            git checkout -b filtered-run-tests_only-branch
+            git push origin filtered-run-tests_only-branch
+            git checkout "$MAIN_BRANCH"
+
+      - run:
+          name: push ignore-branch branch
+          command: |
+            MAIN_BRANCH="$CIRCLE_BRANCH"
+            git checkout -b filtered-run-tests_ignore-branch
+            git push origin filtered-run-tests_ignore-branch
+            git checkout "$MAIN_BRANCH"
+
+      - run:
+          name: push only-tag tag
+          command: |
+            git tag filtered-run-tests_only-tag
+            git push origin filtered-run-tests_only-tag
+
+      - run:
+          name: push ignore-tag tag
+          command: |
+            git tag filtered-run-tests_ignore-tag
+            git push origin filtered-run-tests_ignore-tag
 
   test-orb-commands:
-    executor: macos
+    executor: build-tools/macos
     steps:
       - checkout
 
@@ -77,7 +138,9 @@ prod-deploy_requires: &prod-deploy_requires
 workflows:
   lint_pack-validate_publish-dev:
     jobs:
-      - orb-tools/lint
+      - orb-tools/lint:
+          branches:
+            ignore: /filtered-run-tests*/
 
       - orb-tools/pack:
           requires:
@@ -119,6 +182,10 @@ workflows:
           name: introspect-orbs-dev
           filters: *integration-dev_filters
 
+      - trigger-filtered-run-test-jobs:
+          name: trigger-filtered-run-test-jobs-dev
+          filters: *integration-dev_filters
+
       # triggered by master branch commits
       - test-orb-commands:
           name: test-orb-commands-master
@@ -126,6 +193,10 @@ workflows:
 
       - build-tools/introspect-orbs:
           name: introspect-orbs-master
+          filters: *integration-master_filters
+
+      - trigger-filtered-run-test-jobs:
+          name: trigger-filtered-run-test-jobs-master
           filters: *integration-master_filters
 
       # patch, minor, or major publishing
