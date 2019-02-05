@@ -1,3 +1,12 @@
+# notes:
+#
+# - actual regex filtering is broken somehow, even though the regexes seem right:
+# https://circleci.com/gh/CircleCI-Public/build-tools-orb/470
+#
+# - may need additional params to specify `true` or `false` for `branches` or `tags`, as CIRCLE_BRANCH seems broken when on a tag, & vice versa (CIRCLE_TAG on a branch):
+# https://circleci.com/gh/CircleCI-Public/build-tools-orb/472
+# https://circleci.com/gh/CircleCI-Public/build-tools-orb/471
+
 description: >
   Conditionally run a step, or a series of steps, via paramaterized
   branch and/or tag filters. Provide either exact branch/tag names or
