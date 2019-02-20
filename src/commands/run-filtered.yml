@@ -85,11 +85,15 @@ steps:
         # check if we got a regex or an exact name
         if [[ "${BRANCH_IGNORE:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES2="${BRANCH_IGNORE:1:${#BRANCH_IGNORE}-2}"
-          echo "branch ignore regex w/o slashes: $STRIP_SLASHES2"
 
-          if [[ "$CIRCLE_BRANCH" =~ $STRIP_SLASHES2 ]]; then
-            echo "branch matches ignore regex; halting"
-            circleci step halt
+          # skip if our regex is empty (//)
+          if [ ! -z "$STRIP_SLASHES2"]; then
+            echo "branch ignore regex w/o slashes: $STRIP_SLASHES2"
+
+            if [[ "$CIRCLE_BRANCH" =~ $STRIP_SLASHES2 ]]; then
+              echo "branch matches ignore regex; halting"
+              circleci step halt
+            fi
           fi
         else # exact name
           if [[ "$CIRCLE_BRANCH" == "$BRANCH_IGNORE" ]]; then
