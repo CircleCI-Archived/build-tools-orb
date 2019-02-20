@@ -87,7 +87,7 @@ steps:
           STRIP_SLASHES2="${BRANCH_IGNORE:1:${#BRANCH_IGNORE}-2}"
 
           # skip if our regex is empty (//)
-          if [ ! -z "$STRIP_SLASHES2"]; then
+          if [ ! -z "$STRIP_SLASHES2" ]; then
             echo "branch ignore regex w/o slashes: $STRIP_SLASHES2"
 
             if [[ "$CIRCLE_BRANCH" =~ $STRIP_SLASHES2 ]]; then
@@ -129,7 +129,7 @@ steps:
           echo "tag ignore regex w/o slashes: $STRIP_SLASHES4"
 
           # skip if there is no tag
-          if [ ! -z "$CIRCLE_TAG"]; then
+          if [ ! -z "$CIRCLE_TAG" ]; then
             if [[ "$CIRCLE_TAG" =~ $STRIP_SLASHES4 ]]; then
               echo "tag matches ignore regex; halting"
               circleci step halt
