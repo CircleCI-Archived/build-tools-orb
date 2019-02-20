@@ -62,7 +62,7 @@ parameters:
 
 steps:
   - run:
-      name: evaluate branch/tag filters
+      name: evaluate branch filters
       command: |
         BRANCH_ONLY=<<parameters.only-branch>>
         # check if we got a regex or an exact name
@@ -102,6 +102,9 @@ steps:
           fi
         fi
 
+  - run:
+      name: evaluate tag filters
+      command: |
         TAG_ONLY=<<parameters.only-tag>>
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_ONLY:0:1}" = "/" ]]; then # regex
@@ -125,9 +128,12 @@ steps:
           STRIP_SLASHES4="${TAG_IGNORE:1:${#TAG_IGNORE}-2}"
           echo "tag ignore regex w/o slashes: $STRIP_SLASHES4"
 
-          if [[ "$CIRCLE_TAG" =~ $STRIP_SLASHES4 ]]; then
-            echo "tag matches ignore regex; halting"
-            circleci step halt
+          # skip if there is no tag
+          if [ ! -z "$CIRCLE_TAG"]; then
+            if [[ "$CIRCLE_TAG" =~ $STRIP_SLASHES4 ]]; then
+              echo "tag matches ignore regex; halting"
+              circleci step halt
+            fi
           fi
         else  # exact name
           if [[ "$CIRCLE_TAG" == "$TAG_IGNORE" ]]; then
