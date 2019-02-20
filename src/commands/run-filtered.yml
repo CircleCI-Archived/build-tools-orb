@@ -64,7 +64,7 @@ steps:
   - run:
       name: evaluate branch/tag filters
       command: |
-        BRANCH_ONLY="<<parameters.only-branch>>"
+        BRANCH_ONLY=<<parameters.only-branch>>
         # check if we got a regex or an exact name
         if [[ "${BRANCH_ONLY:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES1="${BRANCH_ONLY:1:${#BRANCH_ONLY}-2}"
@@ -81,7 +81,7 @@ steps:
           fi
         fi
 
-        BRANCH_IGNORE="<<parameters.ignore-branch>>"
+        BRANCH_IGNORE=<<parameters.ignore-branch>>
         # check if we got a regex or an exact name
         if [[ "${BRANCH_IGNORE:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES2="${BRANCH_IGNORE:1:${#BRANCH_IGNORE}-2}"
@@ -98,7 +98,7 @@ steps:
           fi
         fi
 
-        TAG_ONLY="<<parameters.only-tag>>"
+        TAG_ONLY=<<parameters.only-tag>>
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_ONLY:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES3="${TAG_ONLY:1:${#TAG_ONLY}-2}"
@@ -115,7 +115,7 @@ steps:
           fi
         fi
 
-        TAG_IGNORE="<<parameters.ignore-tag>>"
+        TAG_IGNORE=<<parameters.ignore-tag>>
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_IGNORE:0:1}" = "/" ]]; then # regex
           STRIP_SLASHES4="${TAG_IGNORE:1:${#TAG_IGNORE}-2}"
