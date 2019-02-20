@@ -62,7 +62,7 @@ parameters:
 
 steps:
   - run:
-      name: evaluate branch filters
+      name: evaluate branch/tag filters
       command: |
         BRANCH_ONLY=<<parameters.only-branch>>
         # check if we got a regex or an exact name
@@ -102,9 +102,6 @@ steps:
           fi
         fi
 
-  - run:
-      name: evaluate tag filters
-      command: |
         TAG_ONLY=<<parameters.only-tag>>
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_ONLY:0:1}" = "/" ]]; then # regex
