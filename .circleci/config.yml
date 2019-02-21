@@ -189,8 +189,6 @@ workflows:
                   git tag filtered-run-tests_ignore-tag-dev
                   git push origin filtered-run-tests_ignore-tag-dev
           cleanup-tags: true
-          requires:
-            - orb-tools/publish-dev
           filters:
             branches:
               ignore: master
