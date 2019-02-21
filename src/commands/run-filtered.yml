@@ -66,9 +66,9 @@ steps:
       command: |
         # check if we are in a branch or tag job
         if [ ! -z "$CIRCLE_BRANCH" ]; then
-          evaluate_branch_filters()
+          evaluate_branch_filters
         elif [ ! -z "$CIRCLE_TAG"]; then
-          evaluate_tag_filters()
+          evaluate_tag_filters
         fi
 
         evaluate_branch_filters () {
