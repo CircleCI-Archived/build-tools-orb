@@ -188,6 +188,9 @@ workflows:
                 command: |
                   git tag filtered-run-tests_ignore-tag-dev
                   git push origin filtered-run-tests_ignore-tag-dev
+          cleanup-tags: true
+          requires:
+            - orb-tools/publish-dev
           filters:
             branches:
               ignore: master
@@ -195,6 +198,7 @@ workflows:
       - orb-tools/trigger-integration-workflow:
           name: trigger-integration-master
           ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
+          cleanup-tags: true
           tag: master
           requires: [orb-tools/publish-dev]
           post-steps:
