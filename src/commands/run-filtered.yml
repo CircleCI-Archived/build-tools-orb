@@ -138,6 +138,9 @@ steps:
               circleci step halt
             else
               TAG_MATCH=true
+              if [[ "$TAG_ONLY" != "//" ]]; then
+                TAG_ONLY_SET=true
+              fi
               echo "tag matches tag-only regex!"
             fi
           else # exact name
@@ -169,8 +172,10 @@ steps:
               if [ ! -z "$CIRCLE_TAG" ]; then
                 if [[ "$TAG_IGNORE" != "/.*/" ]]; then
                   if [[ "$CIRCLE_TAG" =~ $STRIP_SLASHES4 ]]; then
-                    echo "tag matches ignore regex; halting"
-                    circleci step halt
+                    if [[ "$TAG_ONLY_SET" != true ]]; then
+                      echo "tag matches ignore regex; halting"
+                      circleci step halt
+                    fi
                   fi
                 fi
               fi
