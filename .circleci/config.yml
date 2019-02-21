@@ -133,16 +133,16 @@ workflows:
                   git config --global user.name "$CIRCLE_USERNAME"
                   git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
 
-            - run:
-                name: cleanup any existing tags, to prep for next job
-                command: |
-                  git tag -d $(git tag -l)
-                  git fetch
-                  git push origin --delete $(git tag -l) || true
-                  git tag -d $(git tag -l)
+            # - run:
+            #     name: cleanup any existing tags, to prep for next job
+            #     command: |
+            #       git tag -d $(git tag -l)
+            #       git fetch
+            #       git push origin --delete $(git tag -l) || true
+            #       git tag -d $(git tag -l)
 
             - run:
-                name: cleanup filtered-run-tests branches, too, if they exist
+                name: cleanup filtered-run-tests branches, if they exist
                 command: |
                   git branch -d filtered-run-tests_only-branch-dev || true
                   git push origin --delete filtered-run-tests_only-branch-dev || true
