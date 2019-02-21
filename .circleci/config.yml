@@ -8,11 +8,11 @@ commands:
   filtered-run-tests_only-branch:
     steps:
       - build-tools/run-filtered:
-          only-branch: /filtered-run-tests_only-branch.*/
+          only-branch: /filtered-run-tests_only-branchx.*/
           ignore-branch: /filtered-run-tests_only-branch.*/
           steps:
             - run:
-                name: should run
+                name: shouldn't run
                 command: echo "testing"
 
   filtered-run-tests_ignore-branch:
@@ -27,11 +27,11 @@ commands:
   filtered-run-tests_only-tag:
     steps:
       - build-tools/run-filtered:
-          only-tag: /filtered-run-tests_only-tag.*/
+          only-tag: /filtered-run-tests_only-tagx.*/
           ignore-tag: /filtered-run-tests_only-tag.*/
           steps:
             - run:
-                name: should run
+                name: shouldn't run
                 command: echo "testing"
 
   filtered-run-tests_ignore-tag:
