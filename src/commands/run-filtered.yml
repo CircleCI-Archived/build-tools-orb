@@ -64,13 +64,6 @@ steps:
   - run:
       name: evaluate branch/tag filters
       command: |
-        # check if we are in a branch or tag job
-        if [ ! -z "$CIRCLE_BRANCH" ]; then
-          evaluate_branch_filters
-        elif [ ! -z "$CIRCLE_TAG"]; then
-          evaluate_tag_filters
-        fi
-
         evaluate_branch_filters () {
           BRANCH_ONLY=<<parameters.only-branch>>
 
@@ -184,5 +177,12 @@ steps:
             fi
           fi
         }
+
+        # check if we are in a branch or tag job
+        if [ ! -z "$CIRCLE_BRANCH" ]; then
+          evaluate_branch_filters
+        elif [ ! -z "$CIRCLE_TAG" ]; then
+          evaluate_tag_filters
+        fi
 
   - steps: <<parameters.steps>>
