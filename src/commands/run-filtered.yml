@@ -79,6 +79,9 @@ steps:
               circleci step halt
             else
               BRANCH_MATCH=true
+              if [[ "$BRANCH_ONLY" != "/.*/" ]]; then
+                BRANCH_ONLY_SET=true
+              fi
               echo "branch matches branch-only regex!"
             fi
           else # exact name
@@ -106,8 +109,10 @@ steps:
                 echo "branch ignore regex w/o slashes: $STRIP_SLASHES2"
 
                 if [[ "$CIRCLE_BRANCH" =~ $STRIP_SLASHES2 ]]; then
-                  echo "branch matches ignore regex; halting"
-                  circleci step halt
+                  if [[ "$BRANCH_ONLY_SET" != true ]]; then
+                    echo "branch matches ignore regex; halting"
+                    circleci step halt
+                  fi
                 fi
               fi
             else # exact name
