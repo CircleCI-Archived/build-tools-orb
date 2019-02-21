@@ -158,10 +158,12 @@ steps:
             # skip if tag-ignore value is default (/.*/)
             # also skip if there is no tag (i.e., we're on a branch)
 
-            if [ ! -z "$CIRCLE_TAG" || "$TAG_IGNORE" == "/.*/" ]; then
-              if [[ "$CIRCLE_TAG" =~ $STRIP_SLASHES4 ]]; then
-                echo "tag matches ignore regex; halting"
-                circleci step halt
+            if [ ! -z "$CIRCLE_TAG" ]; then
+              if [[ "$TAG_IGNORE" != "/.*/" ]]; then
+                if [[ "$CIRCLE_TAG" =~ $STRIP_SLASHES4 ]]; then
+                  echo "tag matches ignore regex; halting"
+                  circleci step halt
+                fi
               fi
             fi
           else  # exact name
