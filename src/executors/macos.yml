@@ -1,0 +1,10 @@
+parameters:
+  xcode-version:
+    type: string
+    default: "10.1.0"
+    description: >
+      Version of Xcode to use. See the following for full list of options:
+      https://circleci.com/docs/2.0/testing-ios/#supported-xcode-versions
+
+macos:
+  xcode: <<parameters.xcode-version>>
