@@ -103,7 +103,7 @@ integration-master_filters: &integration-master_filters
     only: /master-.*/
 
 prod-deploy_requires: &prod-deploy_requires
-  [test-orb-commands-master, introspect-orbs-master]
+  [test-orb-commands-master, introspect-orbs-master, filtered-run-tests_only-branch-master, filtered-run-tests_ignore-branch-master, filtered-run-tests_only-tag-master, filtered-run-tests_ignore-tag-master]
 
 workflows:
   lint_pack-validate_publish-dev:
@@ -290,12 +290,16 @@ workflows:
           filters:
             branches:
               only: filtered-run-tests_only-branch-master
+          post-steps:
+            - filtered-run-tests_only-branch
 
       - filtered-run-tests:
           name: filtered-run-tests_ignore-branch-master
           filters:
             branches:
               only: filtered-run-tests_ignore-branch-master
+          post-steps:
+            - filtered-run-tests_ignore-branch
 
       - filtered-run-tests:
           name: filtered-run-tests_only-tag-master
@@ -304,6 +308,8 @@ workflows:
               ignore: /.*/
             tags:
               only: filtered-run-tests_only-tag-master
+          post-steps:
+            - filtered-run-tests_only-tag
 
       - filtered-run-tests:
           name: filtered-run-tests_ignore-tag-master
@@ -312,6 +318,8 @@ workflows:
               ignore: /.*/
             tags:
               only: filtered-run-tests_ignore-tag-master
+          post-steps:
+            - filtered-run-tests_ignore-tag
 
       # patch, minor, or major publishing
       - orb-tools/dev-promote-prod:
