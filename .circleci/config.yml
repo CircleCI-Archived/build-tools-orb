@@ -9,6 +9,7 @@ commands:
     steps:
       - build-tools/run-filtered:
           only-branch: /filtered-run-tests_only-branch.*/
+          ignore-branch: /filtered-run-tests_only-branch.*/
           steps:
             - run:
                 name: should run
@@ -17,16 +18,17 @@ commands:
   filtered-run-tests_ignore-branch:
     steps:
       - build-tools/run-filtered:
-          ignore-branch: /filtered-run-tests_ignore-branch.*/
+          ignore-branch: /filtered-run-tests_ignore-branchx.*/
           steps:
             - run:
-                name: shouldn't run
+                name: should run
                 command: echo "testing"
 
   filtered-run-tests_only-tag:
     steps:
       - build-tools/run-filtered:
           only-tag: /filtered-run-tests_only-tag.*/
+          ignore-tag: /filtered-run-tests_only-tag.*/
           steps:
             - run:
                 name: should run
@@ -35,10 +37,10 @@ commands:
   filtered-run-tests_ignore-tag:
     steps:
       - build-tools/run-filtered:
-          ignore-tag: /filtered-run-tests_ignore-tag.*/
+          ignore-tag: /filtered-run-tests_ignore-tagx.*/
           steps:
             - run:
-                name: shouldn't run
+                name: should run
                 command: echo "testing"
 
 jobs:
