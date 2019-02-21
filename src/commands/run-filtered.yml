@@ -64,7 +64,6 @@ steps:
   - run:
       name: evaluate branch/tag filters
       command: |
-        BRANCH_MATCH=true
         BRANCH_ONLY=<<parameters.only-branch>>
 
         # check if we got a regex or an exact name
@@ -77,6 +76,9 @@ steps:
 
             BRANCH_MATCH=false
             circleci step halt
+          else
+            BRANCH_MATCH=true
+            echo "branch matches branch-only regex!"
           fi
         else # exact name
           if [[ "$CIRCLE_BRANCH" != "$BRANCH_ONLY" ]]; then
@@ -84,17 +86,21 @@ steps:
 
             BRANCH_MATCH=false
             circleci step halt
+          else
+            BRANCH_MATCH=true
+            echo "branch matches branch-only exact name!"
           fi
         fi
 
         # skip branch-ignore if we already know branch-only doesn't match
         if [[ $BRANCH_MATCH == true ]]; then
           BRANCH_IGNORE=<<parameters.ignore-branch>>
+
           # check if we got a regex or an exact name
           if [[ "${BRANCH_IGNORE:0:1}" = "/" ]]; then # regex
             STRIP_SLASHES2="${BRANCH_IGNORE:1:${#BRANCH_IGNORE}-2}"
 
-            # skip if our regex is empty (//)
+            # skip if our branch regex is empty (//)
             if [ ! -z "$STRIP_SLASHES2" ]; then
               echo "branch ignore regex w/o slashes: $STRIP_SLASHES2"
 
@@ -111,7 +117,6 @@ steps:
           fi
         fi
 
-        TAG_MATCH=true
         TAG_ONLY=<<parameters.only-tag>>
         # check if we got "", a regex, or an exact name
         if [[ "${TAG_ONLY:0:1}" = "/" ]]; then # regex
@@ -123,6 +128,9 @@ steps:
 
             TAG_MATCH=false
             circleci step halt
+          else
+            TAG_MATCH=true
+            echo "tag matches tag-only regex!"
           fi
         else # exact name
           if [[ "$CIRCLE_TAG" != "$TAG_ONLY" ]]; then
@@ -130,19 +138,27 @@ steps:
 
             TAG_MATCH=false
             circleci step halt
+          else
+            TAG_MATCH=true
+            echo "tag matches tag-only exact name!"
           fi
         fi
 
         # skip tag-ignore if we already know tag-only doesn't match
         if [[ $TAG_MATCH == true ]]; then
           TAG_IGNORE=<<parameters.ignore-tag>>
+
           # check if we got "", a regex, or an exact name
           if [[ "${TAG_IGNORE:0:1}" = "/" ]]; then # regex
             STRIP_SLASHES4="${TAG_IGNORE:1:${#TAG_IGNORE}-2}"
             echo "tag ignore regex w/o slashes: $STRIP_SLASHES4"
 
-            # skip if there is no tag
-            if [ ! -z "$CIRCLE_TAG" ]; then
+            # we will only get into this section if tag-only was set & matched
+            # in which case we don't want to exit, even if default ignore is all tags
+            # skip if tag-ignore value is default (/.*/)
+            # also skip if there is no tag (i.e., we're on a branch)
+
+            if [ ! -z "$CIRCLE_TAG" || "$TAG_IGNORE" == "/.*/" ]; then
               if [[ "$CIRCLE_TAG" =~ $STRIP_SLASHES4 ]]; then
                 echo "tag matches ignore regex; halting"
                 circleci step halt
