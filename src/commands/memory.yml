@@ -20,6 +20,6 @@ steps:
         echo "Output will be stored in: <<parameters.data-dir>> (creating it if it does not exist...)"
         echo "----------------------------------------------------------------------------------------------------"
         mkdir -p <<parameters.data-dir>>
-        top \>> <<parameters.data-dir>>/top.txt || true
+        top -b \>> <<parameters.data-dir>>/top.txt || true
         echo "----------------------------------------------------------------------------------------------------"
         echo "Memory usage information has been stored in <<parameters.data-dir>>"
