@@ -62,4 +62,4 @@ build-tools/test-results
 ## Contributing
 We welcome [issues](https://github.com/CircleCI-Public/build-tools-orb/issues) (bugs or feature requests) and [pull requests](https://github.com/CircleCI-Public/build-tools-orb/pulls)!
 
-For larger discussions, there is also an active community at https://discuss.circleci.com/c/orbs.
+For larger discussions, there is also an active community at https://discuss.circleci.com/c/ecosystem/orbs.
