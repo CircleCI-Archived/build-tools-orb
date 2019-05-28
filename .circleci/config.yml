@@ -119,7 +119,11 @@ prod-deploy_requires: &prod-deploy_requires
     filtered-run-tests_only-branch-master,
     filtered-run-tests_ignore-branch-master,
     filtered-run-tests_only-tag-master,
-    filtered-run-tests_ignore-tag-master
+    filtered-run-tests_ignore-tag-master,
+    ci-tools-alpine-master,
+    ci-tools-docker-master,
+    ci-tools-mac-master,
+    ci-tools-machine-master
   ]
 
 workflows:
@@ -334,6 +338,27 @@ workflows:
 
       - build-tools/introspect-orbs:
           name: introspect-orbs-master
+          filters: *integration-master_filters
+
+      # ci-tools tests
+      - test-ci-tools:
+          name: ci-tools-alpine-master
+          executor: orb-tools/alpine
+          filters: *integration-master_filters
+
+      - test-ci-tools:
+          name: ci-tools-docker-master
+          executor: orb-tools/node
+          filters: *integration-master_filters
+
+      - test-ci-tools:
+          name: ci-tools-mac-master
+          executor: orb-tools/macos
+          filters: *integration-master_filters
+
+      - test-ci-tools:
+          name: ci-tools-machine-master
+          executor: orb-tools/machine
           filters: *integration-master_filters
 
       # filtered-run tests
