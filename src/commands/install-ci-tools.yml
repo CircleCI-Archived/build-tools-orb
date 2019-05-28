@@ -12,12 +12,16 @@ steps:
         # determine OS
         if uname -a | grep Darwin > /dev/null 2>&1; then
           PLATFORM=mac
+          echo "macOS detected; Homebrew will be used"
         elif cat /etc/issue | grep Alpine > /dev/null 2>&1; then
           PLATFORM=alpine
+          echo "Alpine Linux detected; apk will be used"
         elif cat /etc/issue | grep Debian > /dev/null 2>&1; then
           PLATFORM=debian
+          echo "Debian Linux detected; apt-get will be used"
         elif cat /etc/issue | grep Ubuntu > /dev/null 2>&1; then
-          PLTAFORM=ubuntu
+          PLATFORM=ubuntu
+          echo "Ubuntu Linux detected; apt-get will be used"
         fi
 
         case $PLATFORM in
@@ -38,7 +42,7 @@ steps:
             unzip \
             wget \
             zip \
-            > /dev/null
+            > /dev/null 2>&1
         ;;
         alpine)
           # apk add pkgs
@@ -57,8 +61,8 @@ steps:
             tar \
             unzip \
             wget \
-            zip \
-            > /dev/null
+            zip #\
+            #> /dev/null
         ;;
         debian)
           # apt-get install packages
@@ -80,7 +84,7 @@ steps:
             unzip \
             wget \
             zip \
-            > /dev/null
+            > /dev/null 2>&1
         ;;
         ubuntu)
           # apt-get install packages
@@ -101,8 +105,8 @@ steps:
             tar \
             unzip \
             wget \
-            zip \
-            > /dev/null
+            zip #\
+            #> /dev/null
         ;;
         *)
           echo "Sorry, you are using an unsupported OS/distribution (orb command is currently compatible across macOS, Alpine Linux, Debian Linux, and Ubuntu Linux)"
