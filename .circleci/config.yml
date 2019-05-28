@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   build-tools: circleci/build-tools@dev:alpha
-  orb-tools: circleci/orb-tools@8.3.0
+  orb-tools: circleci/orb-tools@8.13.0
 
 commands:
   filtered-run-tests_only-branch:
@@ -48,6 +48,16 @@ jobs:
     executor: build-tools/ci-base
     steps:
       - checkout
+
+  test-ci-tools:
+    parameters:
+      executor:
+        type: executor
+
+    executor: <<parameters.executor>>
+
+    steps:
+      - build-tools/install-ci-tools
 
   test-orb-commands:
     executor: build-tools/macos
@@ -103,7 +113,18 @@ integration-master_filters: &integration-master_filters
     only: /master-.*/
 
 prod-deploy_requires: &prod-deploy_requires
-  [test-orb-commands-master, introspect-orbs-master, filtered-run-tests_only-branch-master, filtered-run-tests_ignore-branch-master, filtered-run-tests_only-tag-master, filtered-run-tests_ignore-tag-master]
+  [
+    test-orb-commands-master,
+    introspect-orbs-master,
+    filtered-run-tests_only-branch-master,
+    filtered-run-tests_ignore-branch-master,
+    filtered-run-tests_only-tag-master,
+    filtered-run-tests_ignore-tag-master,
+    ci-tools-alpine-master,
+    ci-tools-docker-master,
+    ci-tools-mac-master,
+    ci-tools-machine-master
+  ]
 
 workflows:
   lint_pack-validate_publish-dev:
@@ -142,7 +163,7 @@ workflows:
             #       git tag -d $(git tag -l)
 
             - run:
-                name: cleanup filtered-run-tests branches, if they exist
+                name: cleanup filtered-run-tests branches/tags, if they exist
                 command: |
                   git branch -d filtered-run-tests_only-branch-dev || true
                   git push origin --delete filtered-run-tests_only-branch-dev || true
@@ -155,6 +176,16 @@ workflows:
 
                   git branch -d filtered-run-tests_ignore-branch-master || true
                   git push origin --delete filtered-run-tests_ignore-branch-master || true
+
+                  git tag -d filtered-run-tests_only-tag-dev || true
+                  git tag -d filtered-run-tests_only-tag-master || true
+                  git push origin --delete filtered-run-tests_only-tag-dev || true
+                  git push origin --delete filtered-run-tests_only-tag-master || true
+
+                  git tag -d filtered-run-tests_ignore-tag-dev || true
+                  git tag -d filtered-run-tests_ignore-tag-master || true
+                  git push origin --delete filtered-run-tests_ignore-tag-dev || true
+                  git push origin --delete filtered-run-tests_ignore-tag-master || true
 
       - orb-tools/trigger-integration-workflow:
           name: trigger-integration-dev
@@ -242,6 +273,28 @@ workflows:
           name: introspect-orbs-dev
           filters: *integration-dev_filters
 
+      # ci-tools tests
+      - test-ci-tools:
+          name: ci-tools-alpine-dev
+          executor: orb-tools/alpine
+          filters: *integration-dev_filters
+
+      - test-ci-tools:
+          name: ci-tools-docker-dev
+          executor: orb-tools/node
+          filters: *integration-dev_filters
+
+      - test-ci-tools:
+          name: ci-tools-mac-dev
+          executor: orb-tools/macos
+          filters: *integration-dev_filters
+
+      - test-ci-tools:
+          name: ci-tools-machine-dev
+          executor: orb-tools/machine
+          filters: *integration-dev_filters
+
+      # filtered-run tests
       - filtered-run-tests:
           name: filtered-run-tests_only-branch-dev
           filters:
@@ -287,6 +340,28 @@ workflows:
           name: introspect-orbs-master
           filters: *integration-master_filters
 
+      # ci-tools tests
+      - test-ci-tools:
+          name: ci-tools-alpine-master
+          executor: orb-tools/alpine
+          filters: *integration-master_filters
+
+      - test-ci-tools:
+          name: ci-tools-docker-master
+          executor: orb-tools/node
+          filters: *integration-master_filters
+
+      - test-ci-tools:
+          name: ci-tools-mac-master
+          executor: orb-tools/macos
+          filters: *integration-master_filters
+
+      - test-ci-tools:
+          name: ci-tools-machine-master
+          executor: orb-tools/machine
+          filters: *integration-master_filters
+
+      # filtered-run tests
       - filtered-run-tests:
           name: filtered-run-tests_only-branch-master
           filters:
