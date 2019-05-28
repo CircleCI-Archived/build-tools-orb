@@ -159,7 +159,7 @@ workflows:
             #       git tag -d $(git tag -l)
 
             - run:
-                name: cleanup filtered-run-tests branches, if they exist
+                name: cleanup filtered-run-tests branches/tags, if they exist
                 command: |
                   git branch -d filtered-run-tests_only-branch-dev || true
                   git push origin --delete filtered-run-tests_only-branch-dev || true
@@ -172,6 +172,16 @@ workflows:
 
                   git branch -d filtered-run-tests_ignore-branch-master || true
                   git push origin --delete filtered-run-tests_ignore-branch-master || true
+
+                  git tag -d filtered-run-tests_only-tag-dev || true
+                  git tag -d filtered-run-tests_only-tag-master || true
+                  git push origin --delete filtered-run-tests_only-tag-dev || true
+                  git push origin --delete filtered-run-tests_only-tag-master || true
+
+                  git tag -d filtered-run-tests_ignore-tag-dev || true
+                  git tag -d filtered-run-tests_ignore-tag-master || true
+                  git push origin --delete filtered-run-tests_ignore-tag-dev || true
+                  git push origin --delete filtered-run-tests_ignore-tag-master || true
 
       - orb-tools/trigger-integration-workflow:
           name: trigger-integration-dev

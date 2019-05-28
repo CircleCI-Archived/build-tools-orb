@@ -43,6 +43,8 @@ steps:
             wget \
             zip \
             > /dev/null 2>&1
+
+          echo "CI tools were installed successfully"
         ;;
         alpine)
           # apk add pkgs
@@ -61,8 +63,10 @@ steps:
             tar \
             unzip \
             wget \
-            zip #\
-            #> /dev/null
+            zip \
+            > /dev/null 2>&1
+
+            echo "CI tools were installed successfully"
         ;;
         debian)
           # apt-get install packages
@@ -85,6 +89,8 @@ steps:
             wget \
             zip \
             > /dev/null 2>&1
+
+            echo "CI tools were installed successfully"
         ;;
         ubuntu)
           # apt-get install packages
@@ -105,8 +111,10 @@ steps:
             tar \
             unzip \
             wget \
-            zip #\
-            #> /dev/null
+            zip \
+            > /dev/null 2>&1
+
+            echo "CI tools were installed successfully"
         ;;
         *)
           echo "Sorry, you are using an unsupported OS/distribution (orb command is currently compatible across macOS, Alpine Linux, Debian Linux, and Ubuntu Linux)"
