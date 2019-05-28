@@ -1,0 +1,110 @@
+description: >
+  Install packages commonly required in CircleCI jobs; designed to
+  replicate the tooling pre-loaded in CircleCI's Docker convenience
+  images: https://github.com/circleci/circleci-images/blob/master/shared/images/Dockerfile-basic.template#L26
+
+steps:
+  - run:
+      name: Install CI tools
+      command: |
+        if [[ $EUID == 0 ]]; then export SUDO=""; else export SUDO="sudo"; fi
+
+        # determine OS
+        if uname -a | grep Darwin > /dev/null 2>&1; then
+          PLATFORM=mac
+        elif cat /etc/issue | grep Alpine > /dev/null 2>&1; then
+          PLATFORM=alpine
+        elif cat /etc/issue | grep Debian > /dev/null 2>&1; then
+          PLATFORM=debian
+        elif cat /etc/issue | grep Ubuntu > /dev/null 2>&1; then
+          PLTAFORM=ubuntu
+        fi
+
+        case $PLATFORM in
+        mac)
+          # brew install formulas
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install \
+            bzip2 \
+            coreutils \
+            curl \
+            git \
+            gzip \
+            gnu-tar \
+            gnupg \
+            mercurial \
+            netcat \
+            openssh \
+            parallel \
+            unzip \
+            wget \
+            zip \
+            > /dev/null
+        ;;
+        alpine)
+          # apk add pkgs
+          apk add \
+            bzip2 \
+            ca-certificates \
+            curl \
+            git \
+            gnupg \
+            gzip \
+            mercurial \
+            net-tools \
+            netcat-openbsd \
+            openssh-client \
+            parallel \
+            tar \
+            unzip \
+            wget \
+            zip \
+            > /dev/null
+        ;;
+        debian)
+          # apt-get install packages
+          $SUDO apt-get update > /dev/null && \
+            $SUDO apt-get install -y \
+            bzip2 \
+            ca-certificates \
+            curl \
+            git \
+            gnupg \
+            gzip \
+            locales \
+            mercurial \
+            net-tools \
+            netcat \
+            openssh-client \
+            parallel \
+            tar \
+            unzip \
+            wget \
+            zip \
+            > /dev/null
+        ;;
+        ubuntu)
+          # apt-get install packages
+          $SUDO apt-get update > /dev/null && \
+            $SUDO apt-get install -y \
+            bzip2 \
+            ca-certificates \
+            curl \
+            git \
+            gnupg \
+            gzip \
+            locales \
+            mercurial \
+            net-tools \
+            netcat \
+            openssh-client \
+            parallel \
+            tar \
+            unzip \
+            wget \
+            zip \
+            > /dev/null
+        ;;
+        *)
+          echo "Sorry, you are using an unsupported OS/distribution (orb command is currently compatible across macOS, Alpine Linux, Debian Linux, and Ubuntu Linux)"
+        ;;
+        esac

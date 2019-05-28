@@ -2,7 +2,8 @@ version: 2.1
 
 orbs:
   build-tools: circleci/build-tools@dev:alpha
-  orb-tools: circleci/orb-tools@8.3.0
+  jq: circleci/jq-orb@1.8.0
+  orb-tools: circleci/orb-tools@8.13.0
 
 commands:
   filtered-run-tests_only-branch:
@@ -48,6 +49,18 @@ jobs:
     executor: build-tools/ci-base
     steps:
       - checkout
+
+  test-ci-tools:
+    parameters:
+      executor:
+        type: executor
+
+    executor: <<parameters.executor>>
+
+    steps:
+      - jq/install
+
+      - build-tools/install-ci-tools
 
   test-orb-commands:
     executor: build-tools/macos
@@ -103,7 +116,14 @@ integration-master_filters: &integration-master_filters
     only: /master-.*/
 
 prod-deploy_requires: &prod-deploy_requires
-  [test-orb-commands-master, introspect-orbs-master, filtered-run-tests_only-branch-master, filtered-run-tests_ignore-branch-master, filtered-run-tests_only-tag-master, filtered-run-tests_ignore-tag-master]
+  [
+    test-orb-commands-master,
+    introspect-orbs-master,
+    filtered-run-tests_only-branch-master,
+    filtered-run-tests_ignore-branch-master,
+    filtered-run-tests_only-tag-master,
+    filtered-run-tests_ignore-tag-master
+  ]
 
 workflows:
   lint_pack-validate_publish-dev:
@@ -242,6 +262,28 @@ workflows:
           name: introspect-orbs-dev
           filters: *integration-dev_filters
 
+      # ci-tools tests
+      - test-ci-tools:
+          name: ci-tools-alpine-dev
+          executor: orb-tools/alpine
+          filters: *integration-dev_filters
+
+      - test-ci-tools:
+          name: ci-tools-docker-dev
+          executor: orb-tools/node
+          filters: *integration-dev_filters
+
+      - test-ci-tools:
+          name: ci-tools-mac-dev
+          executor: orb-tools/macos
+          filters: *integration-dev_filters
+
+      - test-ci-tools:
+          name: ci-tools-machine-dev
+          executor: orb-tools/machine
+          filters: *integration-dev_filters
+
+      # filtered-run tests
       - filtered-run-tests:
           name: filtered-run-tests_only-branch-dev
           filters:
@@ -287,6 +329,7 @@ workflows:
           name: introspect-orbs-master
           filters: *integration-master_filters
 
+      # filtered-run tests
       - filtered-run-tests:
           name: filtered-run-tests_only-branch-master
           filters:
