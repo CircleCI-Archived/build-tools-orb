@@ -2,7 +2,8 @@ version: 2.1
 
 description: >
   An orb with some general-purpose tools to help analyze, debug, and
-  optimize your CircleCI builds.
+  optimize your CircleCI builds. See this orb's source on GitHub:
+  https://github.com/circleci-public/build-tools-orb
 
 orbs:
   cli: circleci/circleci-cli@0.1.2
