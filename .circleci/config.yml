@@ -2,7 +2,6 @@ version: 2.1
 
 orbs:
   build-tools: circleci/build-tools@dev:alpha
-  jq: circleci/jq-orb@1.8.0
   orb-tools: circleci/orb-tools@8.13.0
 
 commands:
@@ -58,8 +57,6 @@ jobs:
     executor: <<parameters.executor>>
 
     steps:
-      - jq/install
-
       - build-tools/install-ci-tools
 
   test-orb-commands:
