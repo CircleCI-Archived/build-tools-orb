@@ -64,9 +64,8 @@ jobs:
     executor: <<parameters.executor>>
 
     steps:
-      - run:
-          name: see if make is installed
-          command: which make
+      - build-tools/ensure-command:
+          command: make
 
       - build-tools/install-ci-tools
 
