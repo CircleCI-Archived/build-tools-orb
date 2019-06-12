@@ -139,6 +139,7 @@ steps:
               tar \
               unzip \
               wget \
+              which
               zip \
               > /dev/null 2>&1
 
