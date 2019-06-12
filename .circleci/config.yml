@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   build-tools: circleci/build-tools@dev:alpha
-  orb-tools: circleci/orb-tools@8.13.0
+  orb-tools: circleci/orb-tools@8.20.0
 
 executors:
   oracle:
@@ -64,10 +64,10 @@ jobs:
     executor: <<parameters.executor>>
 
     steps:
+      - build-tools/install-ci-tools
+
       - build-tools/ensure-command:
           command: make
-
-      - build-tools/install-ci-tools
 
   test-orb-commands:
     executor: build-tools/macos
@@ -421,6 +421,7 @@ workflows:
       # patch, minor, or major publishing
       - orb-tools/dev-promote-prod:
           name: dev-promote-patch
+          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
           context: orb-publishing
           orb-name: circleci/build-tools
           requires: *prod-deploy_requires
@@ -433,6 +434,7 @@ workflows:
       - orb-tools/dev-promote-prod:
           name: dev-promote-minor
           release: minor
+          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
           context: orb-publishing
           orb-name: circleci/build-tools
           requires: *prod-deploy_requires
@@ -444,6 +446,7 @@ workflows:
 
       - orb-tools/dev-promote-prod:
           name: dev-promote-major
+          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
           release: major
           context: orb-publishing
           orb-name: circleci/build-tools
