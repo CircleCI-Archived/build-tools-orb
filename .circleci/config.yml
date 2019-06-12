@@ -4,6 +4,11 @@ orbs:
   build-tools: circleci/build-tools@dev:alpha
   orb-tools: circleci/orb-tools@8.13.0
 
+executors:
+  oracle:
+    docker: [image: openjdk:12-oracle]
+    resource_class: small
+
 commands:
   filtered-run-tests_only-branch:
     steps:
@@ -57,6 +62,10 @@ jobs:
     executor: <<parameters.executor>>
 
     steps:
+      - run:
+          name: see if make is installed
+          command: which make
+
       - build-tools/install-ci-tools
 
   test-orb-commands:
@@ -294,6 +303,11 @@ workflows:
           executor: orb-tools/machine
           filters: *integration-dev_filters
 
+      - test-ci-tools:
+          name: ci-tools-oracle-dev
+          executor: oracle
+          filters: *integration-dev_filters
+
       # filtered-run tests
       - filtered-run-tests:
           name: filtered-run-tests_only-branch-dev
@@ -359,6 +373,11 @@ workflows:
       - test-ci-tools:
           name: ci-tools-machine-master
           executor: orb-tools/machine
+          filters: *integration-master_filters
+
+      - test-ci-tools:
+          name: ci-tools-oracle-master
+          executor: oracle
           filters: *integration-master_filters
 
       # filtered-run tests
