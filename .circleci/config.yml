@@ -6,8 +6,10 @@ orbs:
 
 executors:
   oracle:
-    docker: [image: openjdk:12-oracle]
     resource_class: small
+    docker:
+      - image: openjdk:12-oracle
+
 
 commands:
   filtered-run-tests_only-branch:
