@@ -130,7 +130,8 @@ prod-deploy_requires: &prod-deploy_requires
     ci-tools-alpine-master,
     ci-tools-docker-master,
     ci-tools-mac-master,
-    ci-tools-machine-master
+    ci-tools-machine-master,
+    ci-tools-oracle-master
   ]
 
 workflows:
