@@ -2,7 +2,14 @@ version: 2.1
 
 orbs:
   build-tools: circleci/build-tools@dev:alpha
-  orb-tools: circleci/orb-tools@8.13.0
+  orb-tools: circleci/orb-tools@8.20.0
+
+executors:
+  oracle:
+    resource_class: small
+    docker:
+      - image: openjdk:12-oracle
+
 
 commands:
   filtered-run-tests_only-branch:
@@ -123,7 +130,8 @@ prod-deploy_requires: &prod-deploy_requires
     ci-tools-alpine-master,
     ci-tools-docker-master,
     ci-tools-mac-master,
-    ci-tools-machine-master
+    ci-tools-machine-master,
+    ci-tools-oracle-master
   ]
 
 workflows:
@@ -294,6 +302,11 @@ workflows:
           executor: orb-tools/machine
           filters: *integration-dev_filters
 
+      - test-ci-tools:
+          name: ci-tools-oracle-dev
+          executor: oracle
+          filters: *integration-dev_filters
+
       # filtered-run tests
       - filtered-run-tests:
           name: filtered-run-tests_only-branch-dev
@@ -361,6 +374,11 @@ workflows:
           executor: orb-tools/machine
           filters: *integration-master_filters
 
+      - test-ci-tools:
+          name: ci-tools-oracle-master
+          executor: oracle
+          filters: *integration-master_filters
+
       # filtered-run tests
       - filtered-run-tests:
           name: filtered-run-tests_only-branch-master
@@ -401,6 +419,7 @@ workflows:
       # patch, minor, or major publishing
       - orb-tools/dev-promote-prod:
           name: dev-promote-patch
+          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
           context: orb-publishing
           orb-name: circleci/build-tools
           requires: *prod-deploy_requires
@@ -413,6 +432,7 @@ workflows:
       - orb-tools/dev-promote-prod:
           name: dev-promote-minor
           release: minor
+          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
           context: orb-publishing
           orb-name: circleci/build-tools
           requires: *prod-deploy_requires
@@ -424,6 +444,7 @@ workflows:
 
       - orb-tools/dev-promote-prod:
           name: dev-promote-major
+          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
           release: major
           context: orb-publishing
           orb-name: circleci/build-tools

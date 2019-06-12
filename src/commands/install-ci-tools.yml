@@ -36,6 +36,7 @@ steps:
             gnu-tar \
             gnupg \
             mercurial \
+            make \
             netcat \
             openssh \
             parallel \
@@ -55,6 +56,7 @@ steps:
             git \
             gnupg \
             gzip \
+            make \
             mercurial \
             net-tools \
             netcat-openbsd \
@@ -80,6 +82,7 @@ steps:
             gzip \
             locales \
             mercurial \
+            make \
             net-tools \
             netcat \
             openssh-client \
@@ -104,6 +107,7 @@ steps:
             gzip \
             locales \
             mercurial \
+            make \
             net-tools \
             netcat \
             openssh-client \
@@ -117,6 +121,34 @@ steps:
             echo "CI tools were installed successfully"
         ;;
         *)
-          echo "Sorry, you are using an unsupported OS/distribution (orb command is currently compatible across macOS, Alpine Linux, Debian Linux, and Ubuntu Linux)"
+          # check for/try with Oracle Linux or other distros using yum
+          if command -v yum >> /dev/null 2>&1; then
+            $SUDO yum install -y \
+              bzip2 \
+              ca-certificates \
+              curl \
+              git \
+              gnupg \
+              gzip \
+              make \
+              mercurial \
+              net-tools \
+              nc \
+              openssh-clients \
+              parallel \
+              tar \
+              unzip \
+              wget \
+              zip \
+              > /dev/null 2>&1
+
+              # locales
+              yum reinstall -y \
+              glibc-common \
+              > /dev/null 2>&1
+          else
+            echo "Sorry, you are using an unsupported OS/distribution (orb command is currently compatible across macOS, Alpine Linux, Debian Linux, and Ubuntu Linux)"
+            exit 1
+          fi
         ;;
         esac
