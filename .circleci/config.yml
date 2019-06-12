@@ -66,9 +66,6 @@ jobs:
     steps:
       - build-tools/install-ci-tools
 
-      - build-tools/ensure-command:
-          command: make
-
   test-orb-commands:
     executor: build-tools/macos
     steps:
