@@ -23,16 +23,16 @@ steps:
         echo "----------------------------------------------------------------------------------------------------"
         mkdir -p <<parameters.data-dir>>
         echo "System information:" > <<parameters.data-dir>>/uname_arch.log
-        echo "uname -a:" $(uname -a) > <<parameters.data-dir>>/uname_arch.log
-        echo "arch: " $(arch) > <<parameters.data-dir>>/uname_arch.log
+        echo "uname -a:" $(uname -a) >> <<parameters.data-dir>>/uname_arch.log
+        echo "arch: " $(arch) >> <<parameters.data-dir>>/uname_arch.log
         echo "Build information:" > <<parameters.data-dir>>/build_info.log
-        echo "TRIGGERER: ${CIRCLE_USERNAME}" > <<parameters.data-dir>>/build_info.log
-        echo "BUILD_NUMBER: ${CIRCLE_BUILD_NUM}" > <<parameters.data-dir>>/build_info.log
-        echo "BUILD_URL: ${CIRCLE_BUILD_URL}" > <<parameters.data-dir>>/build_info.log
-        echo "BRANCH: ${CIRCLE_BRANCH}" > <<parameters.data-dir>>/build_info.log
-        echo "RUNNING JOB: ${CIRCLE_JOB}" > <<parameters.data-dir>>/build_info.log
-        echo "JOB PARALLELISM: ${CIRCLE_NODE_TOTAL}" > <<parameters.data-dir>>/build_info.log
-        echo "CIRCLE_REPOSITORY_URL: ${CIRCLE_REPOSITORY_URL}" > <<parameters.data-dir>>/build_info.log
+        echo "TRIGGERER: ${CIRCLE_USERNAME}" >> <<parameters.data-dir>>/build_info.log
+        echo "BUILD_NUMBER: ${CIRCLE_BUILD_NUM}" >> <<parameters.data-dir>>/build_info.log
+        echo "BUILD_URL: ${CIRCLE_BUILD_URL}" >> <<parameters.data-dir>>/build_info.log
+        echo "BRANCH: ${CIRCLE_BRANCH}" >> <<parameters.data-dir>>/build_info.log
+        echo "RUNNING JOB: ${CIRCLE_JOB}" >> <<parameters.data-dir>>/build_info.log
+        echo "JOB PARALLELISM: ${CIRCLE_NODE_TOTAL}" >> <<parameters.data-dir>>/build_info.log
+        echo "CIRCLE_REPOSITORY_URL: ${CIRCLE_REPOSITORY_URL}" >> <<parameters.data-dir>>/build_info.log
         cat /proc/cpuinfo > <<parameters.data-dir>>/proc_cpuinfo.log || true
         dpkg -l > <<parameters.data-dir>>/dpkg.log || true
         yarn list > <<parameters.data-dir>>/yarn.log || true
