@@ -72,7 +72,7 @@ steps:
         ;;
         debian)
           # apt-get install packages
-          $SUDO apt-get update > /dev/null && \
+          $SUDO apt-get update > /dev/null 2>&1 && \
             $SUDO apt-get install -y \
             bzip2 \
             ca-certificates \
@@ -97,7 +97,7 @@ steps:
         ;;
         ubuntu)
           # apt-get install packages
-          $SUDO apt-get update > /dev/null && \
+          $SUDO apt-get update > /dev/null 2>&1 && \
             $SUDO apt-get install -y \
             bzip2 \
             ca-certificates \
