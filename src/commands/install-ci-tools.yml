@@ -51,6 +51,7 @@ steps:
         alpine)
           # apk add pkgs
           apk add \
+            bash \
             bzip2 \
             ca-certificates \
             curl \
