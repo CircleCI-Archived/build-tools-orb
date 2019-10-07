@@ -46,7 +46,7 @@ build-tools/ios-logs
 ```
 
 ### [`build-tools/memory`](https://circleci.com/orbs/registry/orb/circleci/build-tools#commands-memory)
-Start top as a background process that appends output to a file. Helpful to see memory consumption and process lifecycle over the duration of a job
+Start top as a background process that appends output to a file. Helpful to see memory consumption and process lifecycle over the duration of a job.
 
 ```yaml
 build-tools/memory
