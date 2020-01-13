@@ -39,7 +39,7 @@ build-tools/env-info
 ```
 
 ### [`build-tools/ios-logs`](https://circleci.com/orbs/registry/orb/circleci/build-tools#commands-ios-logs)
-Save Fastlane and Xcode information from an iOS job, to be stored as artifacts and inspected later.
+Save Fastlane logs, Xcode information and iOS simulator crash reports from an iOS job, to be stored as artifacts and inspected later
 
 ```yaml
 build-tools/ios-logs

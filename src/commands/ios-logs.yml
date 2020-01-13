@@ -1,5 +1,5 @@
 description: >
-  Save Fastlane and Xcode information from an iOS job, to be stored as artifacts and inspected later
+  Save Fastlane logs, Xcode information and iOS simulator crash reports from an iOS job, to be stored as artifacts and inspected later
 
 parameters:
   data-dir:
@@ -24,5 +24,6 @@ steps:
         echo export FL_OUTPUT_DIR=~/.ccidiag/ios-logs >> $BASH_ENV
         cp -R ~/project/fastlane ~/.ccidiag/ios-logs
         cp ~/project/*.xcodeproj/project.pbxproj ~/.ccidiag/ios-logs
+        cp -R ~/Library/Logs/DiagnosticReports ~/.ccidiag/ios-logs
         echo "----------------------------------------------------------------------------------------------------"
         echo "iOS diagnostic data has been stored in <<parameters.data-dir>>"
