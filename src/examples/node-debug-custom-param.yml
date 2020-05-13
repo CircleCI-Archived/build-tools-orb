@@ -6,7 +6,7 @@ usage:
   version: 2.1
 
   orbs:
-    diagnostic-orb: circleci/diagnostic-orb@1.0.0
+    build-tools: circleci/build-tools@1.0.0
 
   executors:
     node:
@@ -31,14 +31,14 @@ usage:
       jobs:
         - build:
             post-steps:
-              - diagnostic-orb/env-info:
+              - build-tools/env-info:
                   data-dir: diagnostic-report/env-info
 
               # data-dir can be any directory; however, it's important to make sure that
               # directories passed as parameters to any debugging commands are
               # subdirectories of the directory passed to the final store-report command
 
-              - diagnostic-orb/store-report:
+              - build-tools/store-report:
                   data-dir: diagnostic-report
 
         - deploy:
