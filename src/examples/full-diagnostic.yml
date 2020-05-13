@@ -5,7 +5,7 @@ usage:
   version: 2.1
 
   orbs:
-    build-tools: circleci/build-tools@1.0.0
+    build-tools: circleci/build-tools@2.6.3
 
   # this example uses the machine executor; these orb commands
   # should work in any Debian- or Ubuntu-based environment
