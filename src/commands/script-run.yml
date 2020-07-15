@@ -33,7 +33,11 @@ steps:
   - run:
       name: << parameters.label >>
       command: |
-        if [[ $EUID == 0 ]]; then export SUDO=""; else export SUDO="sudo"; fi
+        if [[ $EUID == 0 ]] || ! command -v sudo >/dev/null 2>&1; then
+          export SUDO=""
+        else
+          export SUDO="sudo"
+        fi
 
         mkdir -p << parameters.file-directory >>
         tmpfile=<< parameters.file-directory >><< parameters.file-name >>
