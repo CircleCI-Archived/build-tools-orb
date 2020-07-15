@@ -35,6 +35,8 @@ jobs:
             echo gymfile > ~/project/fastlane/Gymfile
             echo appfile > ~/project/fastlane/Appfile
             mkdir -p ~/project/ccidiag.xcodeproj
+            mkdir -p ~/Library/Logs/DiagnosticReports
+            echo test > ~/Library/Logs/DiagnosticReports/test.txt
             echo project > ~/project/ccidiag.xcodeproj/project.pbxproj
       - build-tools/script-run:
           label: Validate file init
