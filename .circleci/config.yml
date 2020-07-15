@@ -13,15 +13,32 @@ parameters:
     default: "dev:alpha"
 
 jobs:
-  integration-test_install-tools:
+  integration-test:
     parameters:
       executor:
         type: executor
     executor: <<parameters.executor>>
     steps:
       - build-tools/install-ci-tools
+      - build-tools/ensure-command:
+          command: git
+      - build-tools/script-run:
+          label: Test script
+          script: |
+            #!/bin/bash
+            echo "This is a test"
+            if [ -z "" ]; then
+              echo This is true
+            fi
+      - build-tools/init-file:
+          file: /tmp/xyz/xyz.txt
+      - run: ls -alh /tmp/xyz
+      - build-tools/env-info
+      - build-tools/memory
+      - build-tools/test-results
+      - build-tools/store-report
 
-  integration-test_macos:
+  integration-test_macos-ios-logs:
     executor: build-tools/macos
     steps:
       - build-tools/ensure-command:
@@ -48,30 +65,7 @@ jobs:
             else
               echo appfile >> ~/project/fastlane/Appfile
             fi
-      - build-tools/env-info
       - build-tools/ios-logs
-      - build-tools/memory
-      - build-tools/test-results
-      - build-tools/store-report
-
-  integration-test_cimg-base-edge:
-    docker:
-      - image: cimg/base:edge
-    steps:
-      - build-tools/ensure-command:
-          command: git
-      - build-tools/script-run:
-          label: Test script
-          script: |
-            #!/bin/bash
-            echo "This is a test"
-            if [ -z "" ]; then
-              echo This is true
-            fi
-
-      - build-tools/env-info
-      - build-tools/memory
-      - build-tools/test-results
       - build-tools/store-report
 
 workflows:
@@ -97,7 +91,7 @@ workflows:
   integration-tests_prod-release:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - integration-test_install-tools:
+      - integration-test:
           matrix:
             parameters:
               executor: [
@@ -109,7 +103,6 @@ workflows:
                 "build-tools/ruby"
               ]
       - integration-test_macos
-      - integration-test_cimg-base-edge
 
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: circleci/build-tools
@@ -121,9 +114,8 @@ workflows:
           publish-version-tag: true
           ssh-fingerprints: 0f:a9:80:6c:d2:af:9c:05:fc:78:e9:f2:8d:c8:f1:65
           requires:
-            - integration-test_install-tools
+            - integration-test
             - integration-test_macos
-            - integration-test_cimg-base-edge
           filters:
             branches:
               only: master
