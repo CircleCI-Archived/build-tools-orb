@@ -102,7 +102,7 @@ workflows:
                 "build-tools/python",
                 "build-tools/ruby"
               ]
-      - integration-test_macos
+      - integration-test_macos-ios-logs
 
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: circleci/build-tools
@@ -115,7 +115,7 @@ workflows:
           ssh-fingerprints: 0f:a9:80:6c:d2:af:9c:05:fc:78:e9:f2:8d:c8:f1:65
           requires:
             - integration-test
-            - integration-test_macos
+            - integration-test_macos-ios-logs
           filters:
             branches:
               only: master
