@@ -13,12 +13,64 @@ parameters:
     default: "dev:alpha"
 
 jobs:
-  integration-test:
+  integration-test_install-tools:
+    parameters:
+      executor:
+        type: executor
+    executor: <<parameters.executor>>
+    steps:
+      - build-tools/install-ci-tools
+
+  integration-test_macos:
+    executor: build-tools/macos
+    steps:
+      - build-tools/ensure-command:
+          command: brew
+      - build-tools/script-run:
+          label: Setup skeleton filesystem for ios-logs command.
+          script: |
+            #!/bin/bash
+            mkdir -p ~/project/fastlane
+            echo fastfile > ~/project/fastlane/Fastfile
+            echo gymfile > ~/project/fastlane/Gymfile
+            echo appfile > ~/project/fastlane/Appfile
+            mkdir -p ~/project/ccidiag.xcodeproj
+            echo project > ~/project/ccidiag.xcodeproj/project.pbxproj
+      - build-tools/script-run:
+          label: Validate file init
+          script: |
+            #!/bin/bash
+            if [ ! -f ~/project/fastlane/Appfile ]; then
+              echo "file init did not succeed"
+              exit 1
+            else
+              echo appfile >> ~/project/fastlane/Appfile
+            fi
+      - build-tools/env-info
+      - build-tools/ios-logs
+      - build-tools/memory
+      - build-tools/test-results
+      - build-tools/store-report
+
+  integration-test_cimg-base-edge:
     docker:
       - image: cimg/base:edge
     steps:
-      - run: echo "It works!"
+      - build-tools/ensure-command:
+          command: git
+      - build-tools/script-run:
+          label: Test script
+          script: |
+            #!/bin/bash
+            echo "This is a test"
+            if [ -z "" ]; then
+              echo This is true
+            fi
 
+      - build-tools/env-info
+      - build-tools/memory
+      - build-tools/test-results
+      - build-tools/store-report
 
 workflows:
   # This `lint-pack_validate_publish-dev` workflow will run on any commit.
@@ -43,7 +95,19 @@ workflows:
   integration-tests_prod-release:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - integration-test
+      - integration-test_install-tools:
+          matrix:
+            parameters:
+              executor: [
+                "build-tools/bash",
+                "build-tools/ci-base",
+                "build-tools/default",
+                "build-tools/macos",
+                "build-tools/python",
+                "build-tools/ruby"
+              ]
+      - integration-test_macos
+      - integration-test_cimg-base-edge
 
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: circleci/build-tools
@@ -55,7 +119,9 @@ workflows:
           publish-version-tag: true
           ssh-fingerprints: 0f:a9:80:6c:d2:af:9c:05:fc:78:e9:f2:8d:c8:f1:65
           requires:
-            - integration-test
+            - integration-test_install-tools
+            - integration-test_macos
+            - integration-test_cimg-base-edge
           filters:
             branches:
               only: master
