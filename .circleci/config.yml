@@ -1,449 +1,61 @@
 version: 2.1
 
 orbs:
-  build-tools: circleci/build-tools@dev:alpha
-  orb-tools: circleci/orb-tools@8.27.1
+  build-tools: circleci/build-tools@<<pipeline.parameters.dev-orb-version>>
+  orb-tools: circleci/orb-tools@9.0
 
-commands:
-  filtered-run-tests_only-branch:
-    steps:
-      - build-tools/run-filtered:
-          only-branch: /filtered-run-tests_only-branchx.*/
-          ignore-branch: /filtered-run-tests_only-branch.*/
-          steps:
-            - run:
-                name: shouldn't run
-                command: echo "testing"
-
-  filtered-run-tests_ignore-branch:
-    steps:
-      - build-tools/run-filtered:
-          ignore-branch: /filtered-run-tests_ignore-branchx.*/
-          steps:
-            - run:
-                name: should run
-                command: echo "testing"
-
-  filtered-run-tests_only-tag:
-    steps:
-      - build-tools/run-filtered:
-          only-tag: /filtered-run-tests_only-tagx.*/
-          ignore-tag: /filtered-run-tests_only-tag.*/
-          steps:
-            - run:
-                name: shouldn't run
-                command: echo "testing"
-
-  filtered-run-tests_ignore-tag:
-    steps:
-      - build-tools/run-filtered:
-          ignore-tag: /filtered-run-tests_ignore-tagx.*/
-          steps:
-            - run:
-                name: should run
-                command: echo "testing"
+parameters:
+  run-integration-tests:
+    type: boolean
+    default: false
+  dev-orb-version:
+    type: string
+    default: "dev:alpha"
 
 jobs:
-  filtered-run-tests:
-    executor: build-tools/ci-base
+  integration-test:
+    docker:
+      - image: cimg/base:edge
     steps:
-      - checkout
+      - run: echo "It works!"
 
-  test-ci-tools:
-    parameters:
-      executor:
-        type: executor
-
-    executor: <<parameters.executor>>
-
-    steps:
-      - build-tools/install-ci-tools
-
-  test-orb-commands:
-    executor: build-tools/macos
-    steps:
-      - checkout
-
-      - build-tools/ensure-command:
-          command: brew
-
-      - build-tools/script-run:
-          label: set up skeleton filesystem to validate ios-logs command (also test script-run command)
-          script: |
-            #!/bin/bash
-
-            mkdir -p ~/project/fastlane
-            echo fastfile > ~/project/fastlane/Fastfile
-            echo gymfile > ~/project/fastlane/Gymfile
-            echo appfile > ~/project/fastlane/Appfile
-
-            mkdir -p ~/project/ccidiag.xcodeproj
-            echo project > ~/project/ccidiag.xcodeproj/project.pbxproj
-
-      - build-tools/script-run:
-          label: validate file init (& test script-run again)
-          script: |
-            #!/bin/bash
-
-            if [ ! -f ~/project/fastlane/Appfile ]; then
-              echo "file init did not succeed"
-              exit 1
-            else
-              echo appfile >> ~/project/fastlane/Appfile
-            fi
-
-      # test rest of build-tools commands
-      - build-tools/env-info
-      - build-tools/ios-logs
-      - build-tools/memory
-      - build-tools/test-results
-      - build-tools/store-report
-
-# yaml anchor filters
-integration-dev_filters: &integration-dev_filters
-  branches:
-    ignore: /.*/
-  tags:
-    only: /integration-.*/
-
-integration-master_filters: &integration-master_filters
-  branches:
-    ignore: /.*/
-  tags:
-    only: /master-.*/
-
-prod-deploy_requires: &prod-deploy_requires
-  [
-    test-orb-commands-master,
-    introspect-orbs-master,
-    filtered-run-tests_only-branch-master,
-    filtered-run-tests_ignore-branch-master,
-    filtered-run-tests_only-tag-master,
-    filtered-run-tests_ignore-tag-master,
-    ci-tools-alpine-master,
-    ci-tools-docker-master,
-    ci-tools-mac-master,
-    ci-tools-machine-master,
-    ci-tools-oracle-master
-  ]
 
 workflows:
+  # This `lint-pack_validate_publish-dev` workflow will run on any commit.
   lint_pack-validate_publish-dev:
+    unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - orb-tools/lint:
-          filters:
-            branches:
-              ignore: /filtered-run-tests.*/
-
+      - orb-tools/lint
       - orb-tools/pack:
           requires:
             - orb-tools/lint
 
       - orb-tools/publish-dev:
-          context: orb-publishing
-          checkout: true
           orb-name: circleci/build-tools
-          requires: [orb-tools/pack]
-          post-steps:
-            - add_ssh_keys:
-                fingerprints:
-                  - 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
+          requires:
+            - orb-tools/pack
 
-            - run:
-                name: git config
-                command: |
-                  git config --global user.name "$CIRCLE_USERNAME"
-                  git config --global user.email "$CIRCLE_USERNAME@users.noreply.github.com"
-
-            # - run:
-            #     name: cleanup any existing tags, to prep for next job
-            #     command: |
-            #       git tag -d $(git tag -l)
-            #       git fetch
-            #       git push origin --delete $(git tag -l) || true
-            #       git tag -d $(git tag -l)
-
-            - run:
-                name: cleanup filtered-run-tests branches/tags, if they exist
-                command: |
-                  git branch -d filtered-run-tests_only-branch-dev || true
-                  git push origin --delete filtered-run-tests_only-branch-dev || true
-
-                  git branch -d filtered-run-tests_only-branch-master || true
-                  git push origin --delete filtered-run-tests_only-branch-master || true
-
-                  git branch -d filtered-run-tests_ignore-branch-dev || true
-                  git push origin --delete filtered-run-tests_ignore-branch-dev || true
-
-                  git branch -d filtered-run-tests_ignore-branch-master || true
-                  git push origin --delete filtered-run-tests_ignore-branch-master || true
-
-                  git tag -d filtered-run-tests_only-tag-dev || true
-                  git tag -d filtered-run-tests_only-tag-master || true
-                  git push origin --delete filtered-run-tests_only-tag-dev || true
-                  git push origin --delete filtered-run-tests_only-tag-master || true
-
-                  git tag -d filtered-run-tests_ignore-tag-dev || true
-                  git tag -d filtered-run-tests_ignore-tag-master || true
-                  git push origin --delete filtered-run-tests_ignore-tag-dev || true
-                  git push origin --delete filtered-run-tests_ignore-tag-master || true
-
-      - orb-tools/trigger-integration-workflow:
+      - orb-tools/trigger-integration-tests-workflow:
           name: trigger-integration-dev
-          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
-          requires: [orb-tools/publish-dev]
-          post-steps:
-            - run:
-                name: push only-branch branch
-                command: |
-                  MAIN_BRANCH="$CIRCLE_BRANCH"
-                  git checkout -b filtered-run-tests_only-branch-dev
-                  git push origin filtered-run-tests_only-branch-dev
-                  git checkout "$MAIN_BRANCH"
+          requires:
+            - orb-tools/publish-dev
 
-            - run:
-                name: push ignore-branch branch
-                command: |
-                  MAIN_BRANCH="$CIRCLE_BRANCH"
-                  git checkout -b filtered-run-tests_ignore-branch-dev
-                  git push origin filtered-run-tests_ignore-branch-dev
-                  git checkout "$MAIN_BRANCH"
+  integration-tests_prod-release:
+    when: << pipeline.parameters.run-integration-tests >>
+    jobs:
+      - integration-test
 
-            - run:
-                name: push only-tag tag
-                command: |
-                  git tag filtered-run-tests_only-tag-dev
-                  git push origin filtered-run-tests_only-tag-dev
-
-            - run:
-                name: push ignore-tag tag
-                command: |
-                  git tag filtered-run-tests_ignore-tag-dev
-                  git push origin filtered-run-tests_ignore-tag-dev
-          cleanup-tags: true
-          filters:
-            branches:
-              ignore: master
-
-      - orb-tools/trigger-integration-workflow:
-          name: trigger-integration-master
-          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
-          cleanup-tags: true
-          tag: master
-          requires: [orb-tools/publish-dev]
-          post-steps:
-            - run:
-                name: push only-branch branch
-                command: |
-                  MAIN_BRANCH="$CIRCLE_BRANCH"
-                  git checkout -b filtered-run-tests_only-branch-master
-                  git push origin filtered-run-tests_only-branch-master
-                  git checkout "$MAIN_BRANCH"
-
-            - run:
-                name: push ignore-branch branch
-                command: |
-                  MAIN_BRANCH="$CIRCLE_BRANCH"
-                  git checkout -b filtered-run-tests_ignore-branch-master
-                  git push origin filtered-run-tests_ignore-branch-master
-                  git checkout "$MAIN_BRANCH"
-
-            - run:
-                name: push only-tag tag
-                command: |
-                  git tag filtered-run-tests_only-tag-master
-                  git push origin filtered-run-tests_only-tag-master
-
-            - run:
-                name: push ignore-tag tag
-                command: |
-                  git tag filtered-run-tests_ignore-tag-master
-                  git push origin filtered-run-tests_ignore-tag-master
+      - orb-tools/dev-promote-prod-from-commit-subject:
+          orb-name: circleci/build-tools
+          context: orb-publishing
+          add-pr-comment: true
+          bot-token-variable: GHI_TOKEN
+          bot-user: cpe-bot
+          fail-if-semver-not-indicated: true
+          publish-version-tag: true
+          ssh-fingerprints: 0f:a9:80:6c:d2:af:9c:05:fc:78:e9:f2:8d:c8:f1:65
+          requires:
+            - integration-test
           filters:
             branches:
               only: master
-
-  integration-tests_prod-deploy:
-    jobs:
-      # triggered by non-master branch commits
-      - test-orb-commands:
-          name: test-orb-commands-dev
-          filters: *integration-dev_filters
-
-      - build-tools/introspect-orbs:
-          name: introspect-orbs-dev
-          filters: *integration-dev_filters
-
-      # ci-tools tests
-      - test-ci-tools:
-          name: ci-tools-alpine-dev
-          executor: orb-tools/alpine
-          filters: *integration-dev_filters
-
-      - test-ci-tools:
-          name: ci-tools-docker-dev
-          executor: orb-tools/node
-          filters: *integration-dev_filters
-
-      - test-ci-tools:
-          name: ci-tools-mac-dev
-          executor: orb-tools/macos
-          filters: *integration-dev_filters
-
-      - test-ci-tools:
-          name: ci-tools-machine-dev
-          executor: orb-tools/machine
-          filters: *integration-dev_filters
-
-      - test-ci-tools:
-          name: ci-tools-oracle-dev
-          executor: orb-tools/oracle
-          filters: *integration-dev_filters
-
-      # filtered-run tests
-      - filtered-run-tests:
-          name: filtered-run-tests_only-branch-dev
-          filters:
-            branches:
-              only: filtered-run-tests_only-branch-dev
-          post-steps:
-            - filtered-run-tests_only-branch
-
-      - filtered-run-tests:
-          name: filtered-run-tests_ignore-branch-dev
-          filters:
-            branches:
-              only: filtered-run-tests_ignore-branch-dev
-          post-steps:
-            - filtered-run-tests_ignore-branch
-
-      - filtered-run-tests:
-          name: filtered-run-tests_only-tag-dev
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: filtered-run-tests_only-tag-dev
-          post-steps:
-            - filtered-run-tests_only-tag
-
-      - filtered-run-tests:
-          name: filtered-run-tests_ignore-tag-dev
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: filtered-run-tests_ignore-tag-dev
-          post-steps:
-            - filtered-run-tests_ignore-tag
-
-      # triggered by master branch commits
-      - test-orb-commands:
-          name: test-orb-commands-master
-          filters: *integration-master_filters
-
-      - build-tools/introspect-orbs:
-          name: introspect-orbs-master
-          filters: *integration-master_filters
-
-      # ci-tools tests
-      - test-ci-tools:
-          name: ci-tools-alpine-master
-          executor: orb-tools/alpine
-          filters: *integration-master_filters
-
-      - test-ci-tools:
-          name: ci-tools-docker-master
-          executor: orb-tools/node
-          filters: *integration-master_filters
-
-      - test-ci-tools:
-          name: ci-tools-mac-master
-          executor: orb-tools/macos
-          filters: *integration-master_filters
-
-      - test-ci-tools:
-          name: ci-tools-machine-master
-          executor: orb-tools/machine
-          filters: *integration-master_filters
-
-      - test-ci-tools:
-          name: ci-tools-oracle-master
-          executor: orb-tools/oracle
-          filters: *integration-master_filters
-
-      # filtered-run tests
-      - filtered-run-tests:
-          name: filtered-run-tests_only-branch-master
-          filters:
-            branches:
-              only: filtered-run-tests_only-branch-master
-          post-steps:
-            - filtered-run-tests_only-branch
-
-      - filtered-run-tests:
-          name: filtered-run-tests_ignore-branch-master
-          filters:
-            branches:
-              only: filtered-run-tests_ignore-branch-master
-          post-steps:
-            - filtered-run-tests_ignore-branch
-
-      - filtered-run-tests:
-          name: filtered-run-tests_only-tag-master
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: filtered-run-tests_only-tag-master
-          post-steps:
-            - filtered-run-tests_only-tag
-
-      - filtered-run-tests:
-          name: filtered-run-tests_ignore-tag-master
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: filtered-run-tests_ignore-tag-master
-          post-steps:
-            - filtered-run-tests_ignore-tag
-
-      # patch, minor, or major publishing
-      - orb-tools/dev-promote-prod:
-          name: dev-promote-patch
-          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
-          context: orb-publishing
-          orb-name: circleci/build-tools
-          requires: *prod-deploy_requires
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /master-patch.*/
-
-      - orb-tools/dev-promote-prod:
-          name: dev-promote-minor
-          release: minor
-          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
-          context: orb-publishing
-          orb-name: circleci/build-tools
-          requires: *prod-deploy_requires
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /master-minor.*/
-
-      - orb-tools/dev-promote-prod:
-          name: dev-promote-major
-          ssh-fingerprints: 16:68:60:ae:33:5c:4e:b3:be:61:26:ce:9a:f3:ed:84
-          release: major
-          context: orb-publishing
-          orb-name: circleci/build-tools
-          requires: *prod-deploy_requires
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /master-major.*/
