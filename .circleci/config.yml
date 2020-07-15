@@ -2,7 +2,7 @@ version: 2.1
 
 orbs:
   build-tools: circleci/build-tools@<<pipeline.parameters.dev-orb-version>>
-  orb-tools: circleci/orb-tools@9.0
+  orb-tools: circleci/orb-tools@9.2
 
 parameters:
   run-integration-tests:
