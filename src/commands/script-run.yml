@@ -33,10 +33,12 @@ steps:
   - run:
       name: << parameters.label >>
       command: |
+        if [[ $EUID == 0 ]]; then export SUDO=""; else export SUDO="sudo"; fi
+
         mkdir -p << parameters.file-directory >>
         tmpfile=<< parameters.file-directory >><< parameters.file-name >>
         touch $tmpfile
-        sudo chmod +x $tmpfile
+        $SUDO chmod +x $tmpfile
         cat \<< ENDOFSCRIPTINTHISORB > $tmpfile
         << parameters.script >>
         ENDOFSCRIPTINTHISORB
