@@ -5,7 +5,7 @@ usage:
   version: 2.1
 
   orbs:
-    diagnostic-orb: circleci/diagnostic-orb@1.0.0
+    build-tools: circleci/build-tools@x.y.z
 
   executors:
     macos:
@@ -30,8 +30,8 @@ usage:
       jobs:
         - build:
             post-steps:
-              - diagnostic-orb/ios-logs
-              - diagnostic-orb/store-report
+              - build-tools/ios-logs
+              - build-tools/store-report
 
         - deploy:
             requires:
