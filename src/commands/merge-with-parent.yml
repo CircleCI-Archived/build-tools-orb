@@ -5,7 +5,7 @@ description: >
 parameters:
   parent:
     type: string
-    description: > 
+    description: >
       Strictly set a parent (e.g "main") that the branch being tested should
       always be merged in to. The parent branch will attempt to be discovered
       if this is blank.
@@ -23,7 +23,7 @@ steps:
               git checkout <<parameters.parent>>
               git merge $CHILD_BRANCH
   - when:
-      condition: 
+      condition:
         not: <<parameters.parent>>
       steps:
         - run:
