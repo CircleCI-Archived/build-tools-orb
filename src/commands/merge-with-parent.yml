@@ -19,7 +19,7 @@ steps:
             name: Merge current branch with <<parameters.parent>>
             command: |
               CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-              if [ "$CHILD_BRANCH" -eq "<<parameters.parent>>" ]; then
+              if [ "$CHILD_BRANCH" = "<<parameters.parent>>" ]; then
                 echo "Can't merge branch into itself! Skipping."
                 exit 0
               fi
@@ -34,7 +34,7 @@ steps:
             command: |
               CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
               PARENT_BRANCH=$(git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
-              if [ "$CHILD_BRANCH" -eq "$PARENT_BRANCH" ]; then
+              if [ "$CHILD_BRANCH" = "$PARENT_BRANCH" ]; then
                 echo "Can't merge branch into itself! Skipping."
                 exit 0
               fi
