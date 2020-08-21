@@ -103,7 +103,8 @@ jobs:
             ls -alh foo.txt
             cat foo.txt
       # Ensure we can't merge primary branch into itself.
-      - build-tools/merge-with-parent
+      - build-tools/merge-with-parent:
+          parent: master
 
 
 workflows:
