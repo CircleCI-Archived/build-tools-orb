@@ -76,6 +76,8 @@ jobs:
       - run:
           name: Set up testing git repository
           command: |
+            git config --global user.email "community-partner@circleci.com"
+            git config --global user.name "CircleCI CPE"
             git checkout -b testing-branch-${RANDOM:0:3}
             echo "foo" > bar.txt
             git add bar.txt
