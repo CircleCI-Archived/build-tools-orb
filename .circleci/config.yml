@@ -37,7 +37,6 @@ jobs:
       - build-tools/memory
       - build-tools/test-results
       - build-tools/store-report
-      - build-tools/merge-with-parent
 
   integration-test_macos-ios-logs:
     executor: build-tools/macos
@@ -68,6 +67,25 @@ jobs:
             fi
       - build-tools/ios-logs
       - build-tools/store-report
+
+  integration-test_merge-parent:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Set up testing git repository
+          command: | 
+            git checkout -b testing-branch-${RANDOM:0:3}
+            echo "foo" > bar.txt
+            git add bar.txt
+            git commit -m "Add bar.txt"
+      - build-tools/merge-with-parent
+      - run:
+          name: Verify merge-with-parent result
+          command: |
+            ls -alh bar.txt
+            cat bar.txt
 
 workflows:
   # This `lint-pack_validate_publish-dev` workflow will run on any commit.
@@ -104,6 +122,7 @@ workflows:
                 "build-tools/ruby"
               ]
       - integration-test_macos-ios-logs
+      - integration-test_merge-parent
 
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: circleci/build-tools
@@ -117,6 +136,7 @@ workflows:
           requires:
             - integration-test
             - integration-test_macos-ios-logs
+            - integration-test_merge-parent
           filters:
             branches:
               only: master
