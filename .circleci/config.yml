@@ -75,7 +75,7 @@ jobs:
       - checkout
       - run:
           name: Set up testing git repository
-          command: | 
+          command: |
             git checkout -b testing-branch-${RANDOM:0:3}
             echo "foo" > bar.txt
             git add bar.txt
