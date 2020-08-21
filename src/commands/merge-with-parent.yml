@@ -19,7 +19,6 @@ steps:
             name: Merge current branch with <<parameters.parent>>
             command: |
               CHILD_BRANCH=$(git branch --show-current)
-              git pull origin <<parameters.parent>>:<<parameters.parent>>
               git checkout <<parameters.parent>>
               git merge $CHILD_BRANCH
   - when:
@@ -31,6 +30,5 @@ steps:
             command: |
               CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
               PARENT_BRANCH=$(git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
-              git pull origin $PARENT_BRANCH:$PARENT_BRANCH
               git checkout $PARENT_BRANCH
               git merge $CHILD_BRANCH
