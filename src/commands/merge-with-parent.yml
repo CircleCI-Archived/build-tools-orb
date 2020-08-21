@@ -10,7 +10,6 @@ parameters:
       always be merged in to. The parent branch will attempt to be discovered
       if this is blank.
     default: ""
-  
 
 steps:
   - when:
