@@ -37,6 +37,7 @@ jobs:
       - build-tools/memory
       - build-tools/test-results
       - build-tools/store-report
+      - build-tools/merge-with-parent
 
   integration-test_macos-ios-logs:
     executor: build-tools/macos
