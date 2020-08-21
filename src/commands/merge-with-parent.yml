@@ -1,0 +1,42 @@
+description: >
+  Merge the current branch with the parent branch to test for conflicts
+  or unexpected behaviour before actually merging.
+
+parameters:
+  parent:
+    type: string
+    description: >
+      Strictly set a parent (e.g "main") that the branch being tested should
+      always be merged in to. The parent branch will attempt to be discovered
+      if this is blank.
+    default: ""
+
+steps:
+  - when:
+      condition: <<parameters.parent>>
+      steps:
+        - run:
+            name: Merge current branch with <<parameters.parent>>
+            command: |
+              CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+              if [ "$CHILD_BRANCH" = "<<parameters.parent>>" ]; then
+                echo "Can't merge branch into itself! Skipping."
+                exit 0
+              fi
+              git checkout <<parameters.parent>>
+              git merge $CHILD_BRANCH
+  - when:
+      condition:
+        not: <<parameters.parent>>
+      steps:
+        - run:
+            name: Merge current branch with parent
+            command: |
+              CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+              PARENT_BRANCH=$(git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
+              if [ "$CHILD_BRANCH" = "$PARENT_BRANCH" ]; then
+                echo "Can't merge branch into itself! Skipping."
+                exit 0
+              fi
+              git checkout $PARENT_BRANCH
+              git merge $CHILD_BRANCH

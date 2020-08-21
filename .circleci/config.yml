@@ -68,6 +68,45 @@ jobs:
       - build-tools/ios-logs
       - build-tools/store-report
 
+  integration-test_merge-parent:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Set up testing git repository
+          command: |
+            git config --global user.email "community-partner@circleci.com"
+            git config --global user.name "CircleCI CPE"
+            git checkout -b testing-branch-${RANDOM:0:3}
+            echo "foo" > bar.txt
+            git add bar.txt
+            git commit -m "Add bar.txt"
+      - build-tools/merge-with-parent
+      - run:
+          name: Verify merge-with-parent result
+          command: |
+            ls -alh bar.txt
+            cat bar.txt
+      - run:
+          name: Set up testing git repository (specify parent branch)
+          command: |
+            git checkout -b testing-branch-${RANDOM:0:3}
+            echo "bar" > foo.txt
+            git add foo.txt
+            git commit -m "Add foo.txt"
+      - build-tools/merge-with-parent:
+          parent: master
+      - run:
+          name: Verify merge-with-parent result (specify parent branch)
+          command: |
+            ls -alh foo.txt
+            cat foo.txt
+      # Ensure we can't merge primary branch into itself.
+      - build-tools/merge-with-parent:
+          parent: master
+
+
 workflows:
   # This `lint-pack_validate_publish-dev` workflow will run on any commit.
   lint_pack-validate_publish-dev:
@@ -103,6 +142,7 @@ workflows:
                 "build-tools/ruby"
               ]
       - integration-test_macos-ios-logs
+      - integration-test_merge-parent
 
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: circleci/build-tools
@@ -116,6 +156,7 @@ workflows:
           requires:
             - integration-test
             - integration-test_macos-ios-logs
+            - integration-test_merge-parent
           filters:
             branches:
               only: master
