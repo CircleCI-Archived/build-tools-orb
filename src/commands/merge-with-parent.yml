@@ -18,7 +18,7 @@ steps:
         - run:
             name: Merge current branch with <<parameters.parent>>
             command: |
-              CHILD_BRANCH=$(git branch --show-current)
+              CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
               git checkout <<parameters.parent>>
               git merge $CHILD_BRANCH
   - when:

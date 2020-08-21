@@ -88,6 +88,21 @@ jobs:
           command: |
             ls -alh bar.txt
             cat bar.txt
+      - run:
+          name: Set up testing git repository (specify parent branch)
+          command: |
+            git checkout -b testing-branch-${RANDOM:0:3}
+            echo "bar" > foo.txt
+            git add foo.txt
+            git commit -m "Add foo.txt"
+      - build-tools/merge-with-parent:
+          parent: master
+      - run:
+          name: Verify merge-with-parent result (specify parent branch)
+          command: |
+            ls -alh foo.txt
+            cat foo.txt
+
 
 workflows:
   # This `lint-pack_validate_publish-dev` workflow will run on any commit.
