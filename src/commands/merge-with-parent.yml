@@ -20,8 +20,8 @@ steps:
             command: |
               CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
               if [ "$CHILD_BRANCH" -eq "<<parameters.parent>>" ]; then
-                echo "Can't merge branch into itself!"
-                exit 1
+                echo "Can't merge branch into itself! Skipping."
+                exit 0
               fi
               git checkout <<parameters.parent>>
               git merge $CHILD_BRANCH
@@ -35,8 +35,8 @@ steps:
               CHILD_BRANCH=$(git rev-parse --abbrev-ref HEAD)
               PARENT_BRANCH=$(git show-branch | sed "s/].*//" | grep "\*" | grep -v "$(git rev-parse --abbrev-ref HEAD)" | head -n1 | sed "s/^.*\[//")
               if [ "$CHILD_BRANCH" -eq "$PARENT_BRANCH" ]; then
-                echo "Can't merge branch into itself!"
-                exit 1
+                echo "Can't merge branch into itself! Skipping."
+                exit 0
               fi
               git checkout $PARENT_BRANCH
               git merge $CHILD_BRANCH
