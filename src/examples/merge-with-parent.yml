@@ -1,0 +1,23 @@
+description: >
+  Simulate a git merge command against a parent repository, either to
+  investigate merge conflicts or run integration testing against the result.
+
+usage:
+  version: 2.1
+
+  orbs:
+    build-tools: circleci/build-tools@x.y
+
+  jobs:
+    test-with-merge:
+      docker:
+        - image: cimg/base:stable
+      steps:
+        - checkout
+        - build-tools/merge-with-parent
+        - ./your-test-script
+
+  workflows:
+    your-workflow:
+      jobs:
+        - test-with-merge
