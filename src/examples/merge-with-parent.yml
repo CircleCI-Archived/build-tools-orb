@@ -1,12 +1,12 @@
 description: >
-  Merge with a defined or detected parent branch to run tests against likely 
-  result.
+  Simulate a git merge command against a parent repository, either to
+  investigate merge conflicts or run integration testing against the result.
 
 usage:
   version: 2.1
 
   orbs:
-    build-tools: circleci/build-tools@x.y.z
+    build-tools: circleci/build-tools@x.y
 
   jobs:
     test-with-merge:
