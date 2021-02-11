@@ -36,7 +36,7 @@ steps:
                 exit 0
               fi
               git checkout <<parameters.parent>>
-              git merge $CHILD_BRANCH
+              git merge --no-ff --no-commit $CHILD_BRANCH
   - when:
       condition:
         not: <<parameters.parent>>
@@ -51,4 +51,4 @@ steps:
                 exit 0
               fi
               git checkout $PARENT_BRANCH
-              git merge $CHILD_BRANCH
+              git merge --no-ff --no-commit $CHILD_BRANCH
