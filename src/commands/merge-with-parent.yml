@@ -35,7 +35,7 @@ steps:
                 echo "Can't merge branch into itself! Skipping."
                 exit 0
               fi
-              git checkout <<parameters.parent>>
+              git checkout -f -B parent <<parameters.parent>>
               git merge --no-ff --no-commit $CHILD_BRANCH
   - when:
       condition:
@@ -50,5 +50,5 @@ steps:
                 echo "Can't merge branch into itself! Skipping."
                 exit 0
               fi
-              git checkout $PARENT_BRANCH
+              git checkout -f -B parent $PARENT_BRANCH
               git merge --no-ff --no-commit $CHILD_BRANCH
