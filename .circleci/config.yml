@@ -119,11 +119,13 @@ workflows:
 
       - orb-tools/publish-dev:
           orb-name: circleci/build-tools
+          context: orb-publishing
           requires:
             - orb-tools/pack
 
       - orb-tools/trigger-integration-tests-workflow:
           name: trigger-integration-dev
+          context: orb-publishing
           requires:
             - orb-tools/publish-dev
 
