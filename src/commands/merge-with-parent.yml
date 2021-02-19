@@ -5,13 +5,42 @@ description: >
 parameters:
   parent:
     type: string
+    default: ""
     description: >
       Strictly set a parent (e.g "main") that the branch being tested should
       always be merged in to. The parent branch will attempt to be discovered
       if this is blank.
+  no_commit:
+    type: boolean
+    default: false
+    description: >
+      Don't commit the merged state. Can see the changes with `git diff`.
+  no_fast_forward:
+    type: boolean
+    default: false
+    description: >
+      Do not allow merge by fast-forwarding the commits. Forces the changes to be staged
+      for a commit.
+  named_detatched_parent:
+    type: string
     default: ""
+    description: >
+      Name used for a branch created on checkout when a detached HEAD state is expected.
+      This way the merge target has a name you can reference.
 
 steps:
+  - run:
+      name: Set Git identity
+      command: |
+        USER_EMAIL=$(git config --get user.email)
+        USER_NAME=$(git config --get user.name)
+
+        if [ "$USER_EMAIL" = "" ]; then
+          git config user.email "circleci@example.com"
+        fi
+        if [ "$USER_NAME" = "" ]; then
+          git config user.name "CircleCI"
+        fi
   - when:
       condition: <<parameters.parent>>
       steps:
@@ -23,8 +52,8 @@ steps:
                 echo "Can't merge branch into itself! Skipping."
                 exit 0
               fi
-              git checkout <<parameters.parent>>
-              git merge $CHILD_BRANCH
+              git checkout<<# parameters.named_detatched_parent >> -f -B << parameters.named_detatched_parent >><</ parameters.named_detatched_parent >> <<parameters.parent>>
+              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> $CHILD_BRANCH
   - when:
       condition:
         not: <<parameters.parent>>
@@ -38,5 +67,5 @@ steps:
                 echo "Can't merge branch into itself! Skipping."
                 exit 0
               fi
-              git checkout $PARENT_BRANCH
-              git merge $CHILD_BRANCH
+              git checkout<<# parameters.named_detatched_parent >> -f -B << parameters.named_detatched_parent >><</ parameters.named_detatched_parent >> $PARENT_BRANCH
+              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> $CHILD_BRANCH
