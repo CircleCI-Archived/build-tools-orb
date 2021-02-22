@@ -53,7 +53,7 @@ steps:
                 exit 0
               fi
               git checkout<<# parameters.named_detached_parent >> -f -B << parameters.named_detached_parent >><</ parameters.named_detached_parent >> <<parameters.parent>>
-              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> $CHILD_BRANCH
+              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> -m "merge-with-parent" $CHILD_BRANCH
   - when:
       condition:
         not: <<parameters.parent>>
@@ -68,4 +68,4 @@ steps:
                 exit 0
               fi
               git checkout<<# parameters.named_detached_parent >> -f -B << parameters.named_detached_parent >><</ parameters.named_detached_parent >> $PARENT_BRANCH
-              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> $CHILD_BRANCH
+              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> -m "merge-with-parent" $CHILD_BRANCH
