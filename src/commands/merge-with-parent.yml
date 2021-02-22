@@ -21,7 +21,7 @@ parameters:
     description: >
       Do not allow merge by fast-forwarding the commits. Forces the changes to be staged
       for a commit.
-  named_detatched_parent:
+  named_detached_parent:
     type: string
     default: ""
     description: >
@@ -52,8 +52,8 @@ steps:
                 echo "Can't merge branch into itself! Skipping."
                 exit 0
               fi
-              git checkout<<# parameters.named_detatched_parent >> -f -B << parameters.named_detatched_parent >><</ parameters.named_detatched_parent >> <<parameters.parent>>
-              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> $CHILD_BRANCH
+              git checkout<<# parameters.named_detached_parent >> -f -B << parameters.named_detached_parent >><</ parameters.named_detached_parent >> <<parameters.parent>>
+              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> -m "merge-with-parent" $CHILD_BRANCH
   - when:
       condition:
         not: <<parameters.parent>>
@@ -67,5 +67,5 @@ steps:
                 echo "Can't merge branch into itself! Skipping."
                 exit 0
               fi
-              git checkout<<# parameters.named_detatched_parent >> -f -B << parameters.named_detatched_parent >><</ parameters.named_detatched_parent >> $PARENT_BRANCH
-              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> $CHILD_BRANCH
+              git checkout<<# parameters.named_detached_parent >> -f -B << parameters.named_detached_parent >><</ parameters.named_detached_parent >> $PARENT_BRANCH
+              git merge<<# parameters.no_fast_forward >> --no-ff<</ parameters.no_fast_forward >><<# parameters.no_commit >> --no-commit<</ parameters.no_commit >> -m "merge-with-parent" $CHILD_BRANCH
