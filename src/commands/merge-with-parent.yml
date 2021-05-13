@@ -32,8 +32,8 @@ steps:
   - run:
       name: Set Git identity
       command: |
-        USER_EMAIL=$(git config --get user.email)
-        USER_NAME=$(git config --get user.name)
+        USER_EMAIL=$(git config --get user.email || true)
+        USER_NAME=$(git config --get user.name || true)
 
         if [ "$USER_EMAIL" = "" ]; then
           git config user.email "circleci@example.com"
