@@ -1,7 +1,7 @@
 parameters:
   tag:
     type: string
-    default: "3.6.6"
+    default: "3.9.1"
 
 docker:
-  - image: circleci/python:<< parameters.tag >>
+  - image: cimg/python:<< parameters.tag >>

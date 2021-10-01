@@ -1,7 +1,7 @@
 parameters:
   tag:
     type: string
-    default: "2.4.1"
+    default: "2.7.1"
 
 docker:
-  - image: circleci/ruby:<< parameters.tag >>
+  - image: cimg/ruby:<< parameters.tag >>
