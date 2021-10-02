@@ -137,7 +137,6 @@ workflows:
             parameters:
               executor: [
                 "build-tools/bash",
-                "build-tools/ci-base",
                 "build-tools/default",
                 "build-tools/macos",
                 "build-tools/python",
